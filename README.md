@@ -8,7 +8,17 @@ Input:
 * Takes the name of the TRANSP file as first command line input
 * Second command line input is radial location of output (will interpolate)
 * Third command line input is time for output (will not interpolate)
+* Input command therefore looks like: python main.py <filename> <radius> <time>
 
 Output:
 -------
 * Produces a file called gs2.in as output with GS2 parameters at specified radial location
+
+Requirements:
+-------------
+
+* Python (at least 2.7)
+* NetCDF4 
+* HDF5
+* Python NetCDF4 Interface: https://pypi.python.org/pypi/netCDF4
+* Numpy + SciPy + Matplotlib
