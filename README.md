@@ -12,7 +12,10 @@ Input:
 
 Output:
 -------
-* Produces a file called gs2.in as output with GS2 parameters at specified radial location
+* Produces file called gs2.in
+* Equilibrium parameters, e.g. temperatures, densities, gradients, flows, shears
+* Geometric Miller parameters
+* Miscellaneous parameters which need to be set when using Miller parameters (only option for this code so far).
 
 Requirements:
 -------------
@@ -22,3 +25,8 @@ Requirements:
 * HDF5
 * Python NetCDF4 Interface: https://pypi.python.org/pypi/netCDF4
 * Numpy + SciPy + Matplotlib
+
+Caveats
+-------
+
+* The sign of the flow shear may not be correct! This program simply outputs the gradient of the flow without changing sign. The real sign of the flow shear will depend on the sign convention used in the experiment. <Reference something here> 

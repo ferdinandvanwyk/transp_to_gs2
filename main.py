@@ -55,9 +55,9 @@ equil['temp_2'] = np.interp(output_radius, x, te)/1000 #keV
 equil['omega'] = np.interp(output_radius, x, omega) #rad/s
 mag_axis_idx, min_value = min(enumerate(abs(bpbt)), key=operator.itemgetter(1))
 equil['btref'] = fbtx[mag_axis_idx]*btx[mag_axis_idx]
-equil['beta'] = 403.0*equil['dens_1']*equil['temp_1']/(1e5*equil['btref']**2)
+beta =  403.0*ni*1e6/1e19*ti/1000/(1e5*equil['btref']**2)
+equil['beta'] = np.interp(output_radius, x, beta)
 equil['zeff'] = np.interp(output_radius, x, zeffp)
-equil['qinp'] = np.interp(output_radius, x, q)
 
 # Gradient calculation requires numerical differentiation
 # Use a second order central method: f'(x) = [f(x+h) - f(x-h)]/2h
@@ -72,35 +72,43 @@ equil['fprim_1'] = -(ni[rad_idx+1]-ni[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])/ni
 equil['fprim_2'] = -(ne[rad_idx+1]-ne[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])/ne[rad_idx]
 equil['tprim_1'] = -(ti[rad_idx+1]-ti[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])/ti[rad_idx]
 equil['tprim_2'] = -(te[rad_idx+1]-te[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])/te[rad_idx]
+equil['beta_prime_input'] = (beta[rad_idx+1]-beta[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1]) #See wiki definition: not taking into account B_T variation
 equil['g_exb'] = (omega[rad_idx+1]-omega[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])*(x[rad_idx]/q[rad_idx])*(amin/vth)
-print equil['g_exb']
-print rad_idx, x[rad_idx+1]-x[rad_idx-1], omega[rad_idx+1]-omega[rad_idx-1], output_radius/equil['qinp'], amin/vth
-
-
-
 
 f = open('gs2.in', 'w')
 f.write('Equilibrium Parameters: \n')
+f.write('----------------------- \n')
 for name, value in equil.items():
   f.write(name + ' = ' + str(value) + '\n')
+f.write('\n')
 
 
 ###################################
 #Calculate geoemetry parameters #
 ###################################
-geometry = {}
+geo = {}
+geo['shat'] = np.interp(output_radius, x, shat)
+geo['s_hat_input'] = np.interp(output_radius, x, shat)
+geo['qinp'] = np.interp(output_radius, x, q)
+geo['shift'] = (flux_centres[rad_idx+1]/100/amin-flux_centres[rad_idx-1]/100/amin)/(x[rad_idx+1]-x[rad_idx-1])
+geo['akappa'] = np.interp(output_radius, x, elongation)
+geo['akappri'] = (elongation[rad_idx+1]-elongation[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])
+geo['tri'] = np.interp(output_radius, x, triang)
+geo['tripri'] = (triang[rad_idx+1]-triang[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])
 
+f.write('Geometry Parameters: \n')
+f.write('-------------------- \n')
+for name, value in geo.items():
+  f.write(name + ' = ' + str(value) + '\n')
+f.write('\n')
 
-
-
-
-
-
-
-
-
-
-
+f.write('Miscellaneous Parameters: \n')
+f.write('------------------------- \n')
+f.write('irho = \n')
+f.write('rhoc = \n')
+f.write('iflux = \n')
+f.write('bishop = \n')
+f.write('local_eq = \n')
 
 
 
