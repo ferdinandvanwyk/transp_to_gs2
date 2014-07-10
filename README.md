@@ -6,7 +6,8 @@ Reads a TRANSP file and outputs parameters relevant to a GS2 simulation
 Input:
 -----
 * Takes the name of the TRANSP file as first command line input
-* Second command line input is radial location of output
+* Second command line input is radial location of output (will interpolate)
+* Third command line input is time for output (will not interpolate)
 
 Output:
 -------
