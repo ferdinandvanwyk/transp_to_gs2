@@ -37,7 +37,6 @@ triang = ncfile.variables['TRIANG'][t_idx,:]
 zeffp = ncfile.variables['ZEFFP'][t_idx,:]
 
 #Normalization quantities
-amin = 0.58044
 boltz_jk = 1.3806488e-23
 boltz_evk = 8.6173324e-5
 proton_mass = 1.672621777e-27
@@ -47,6 +46,8 @@ proton_mass = 1.672621777e-27
 #Calculate equilibrium parameters #
 ###################################
 equil = {}
+equil['amin'] = (rmaj[-1] - rmaj[0])/2/100
+amin = equil['amin']
 equil['dens_1'] = np.interp(output_radius, x, ni)*1e6/1e19
 equil['dens_2'] = np.interp(output_radius, x, ne)*1e6/1e19
 equil['temp_1'] = np.interp(output_radius, x, ti)/1000 #keV
@@ -78,7 +79,7 @@ equil['g_exb'] = (omega[rad_idx+1]-omega[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])
 f = open('gs2.in', 'w')
 f.write('Equilibrium Parameters: \n')
 f.write('----------------------- \n')
-for name, value in equil.items():
+for name, value in sorted(equil.items()):
   f.write(name + ' = ' + str(value) + '\n')
 f.write('\n')
 
@@ -87,6 +88,9 @@ f.write('\n')
 #Calculate geoemetry parameters #
 ###################################
 geo = {}
+flux_rmaj = np.interp(output_radius, np.linspace(-1,1,rmaj.shape[0]), rmaj)
+flux_idx, min_value = min(enumerate(abs(rmaj - flux_rmaj)), key=operator.itemgetter(1))
+geo['rhoc'] = (rmaj[flux_idx] - rmaj[mag_axis_idx - (flux_idx-mag_axis_idx)])/(rmaj[-1] - rmaj[0]) #diameter/diameter of LCFS
 geo['shat'] = np.interp(output_radius, x, shat)
 geo['s_hat_input'] = np.interp(output_radius, x, shat)
 geo['qinp'] = np.interp(output_radius, x, q)
@@ -95,17 +99,18 @@ geo['akappa'] = np.interp(output_radius, x, elongation)
 geo['akappri'] = (elongation[rad_idx+1]-elongation[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])
 geo['tri'] = np.interp(output_radius, x, triang)
 geo['tripri'] = (triang[rad_idx+1]-triang[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])
+geo['rmaj'] = rmaj[mag_axis_idx]/100+amin
+geo['r_geo'] = flux_centres[-1]/100+amin
 
 f.write('Geometry Parameters: \n')
 f.write('-------------------- \n')
-for name, value in geo.items():
+for name, value in sorted(geo.items()):
   f.write(name + ' = ' + str(value) + '\n')
 f.write('\n')
 
 f.write('Miscellaneous Parameters: \n')
 f.write('------------------------- \n')
-f.write('irho = \n')
-f.write('rhoc = \n')
+f.write('irho = 2 \n')
 f.write('iflux = \n')
 f.write('bishop = \n')
 f.write('local_eq = \n')
