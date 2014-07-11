@@ -64,17 +64,14 @@ equil['zeff'] = np.interp(output_radius, x, zeffp)
 # Use a second order central method: f'(x) = [f(x+h) - f(x-h)]/2h
 # Find points closest points either side of output_radius and use those
 rad_idx, min_value = min(enumerate(abs(x - output_radius)), key=operator.itemgetter(1))
-if x[rad_idx] < output_radius:
-  rad_idx += 1
-else:
-  rad_idx -= 1
+radb_idx, min_value = min(enumerate(abs(xb - output_radius)), key=operator.itemgetter(1))
 
 equil['fprim_1'] = -(ni[rad_idx+1]-ni[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])/ni[rad_idx]
 equil['fprim_2'] = -(ne[rad_idx+1]-ne[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])/ne[rad_idx]
 equil['tprim_1'] = -(ti[rad_idx+1]-ti[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])/ti[rad_idx]
 equil['tprim_2'] = -(te[rad_idx+1]-te[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])/te[rad_idx]
 equil['beta_prime_input'] = (beta[rad_idx+1]-beta[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1]) #See wiki definition: not taking into account B_T variation
-equil['g_exb'] = (omega[rad_idx+1]-omega[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])*(x[rad_idx]/q[rad_idx])*(amin/vth)
+equil['g_exb'] = (omega[rad_idx+1]-omega[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])*(x[rad_idx]/q[radb_idx])*(amin/vth) #q defined on xb grid
 
 f = open('gs2.in', 'w')
 f.write('Equilibrium Parameters: \n')
@@ -91,9 +88,9 @@ geo = {}
 flux_rmaj = np.interp(output_radius, np.linspace(-1,1,rmaj.shape[0]), rmaj)
 flux_idx, min_value = min(enumerate(abs(rmaj - flux_rmaj)), key=operator.itemgetter(1))
 geo['rhoc'] = (rmaj[flux_idx] - rmaj[mag_axis_idx - (flux_idx-mag_axis_idx)])/(rmaj[-1] - rmaj[0]) #diameter/diameter of LCFS
-geo['shat'] = np.interp(output_radius, x, shat)
-geo['s_hat_input'] = np.interp(output_radius, x, shat)
-geo['qinp'] = np.interp(output_radius, x, q)
+geo['qinp'] = np.interp(output_radius, xb, q)
+geo['shat'] =  ((q[radb_idx+1]-q[radb_idx-1])/(xb[radb_idx+1]-xb[radb_idx-1]))*(xb[radb_idx]/q[radb_idx])
+geo['s_hat_input'] = ((q[radb_idx+1]-q[radb_idx-1])/(xb[radb_idx+1]-xb[radb_idx-1]))*(xb[radb_idx]/q[radb_idx])
 geo['shift'] = (flux_centres[rad_idx+1]/100/amin-flux_centres[rad_idx-1]/100/amin)/(x[rad_idx+1]-x[rad_idx-1])
 geo['akappa'] = np.interp(output_radius, x, elongation)
 geo['akappri'] = (elongation[rad_idx+1]-elongation[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])
@@ -108,17 +105,10 @@ for name, value in sorted(geo.items()):
   f.write(name + ' = ' + str(value) + '\n')
 f.write('\n')
 
-f.write('Miscellaneous Parameters: \n')
-f.write('------------------------- \n')
+f.write('Miscellaneous Parameters (consistent with use of Miller parameters): \n')
+f.write('-------------------------------------------------------------------- \n')
 f.write('irho = 2 \n')
-f.write('iflux = \n')
-f.write('bishop = \n')
-f.write('local_eq = \n')
-
-
-
-
-
-
-
+f.write('iflux = 0 \n')
+f.write('bishop = 4 \n')
+f.write('local_eq = ".true." \n')
 
