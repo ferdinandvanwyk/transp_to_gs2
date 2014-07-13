@@ -45,14 +45,14 @@ A rudimentarty plotting routine is also included and works in the following way:
 Collisions
 ----------
 
-*Equations for collision times/frequencies taken from Wesson Section 2.15 (T(keV), n(m^-3), mi=ion mass, mp=proton mass):
+* Equations for collision times/frequencies taken from Wesson Section 2.15 (T(keV), n(m^-3), mi=ion mass, mp=proton mass):
   * nu_i = 1/tau_i = 1 / [6.60e17 ((mi/mp)^1/2 Ti^3/2) / (n Z^4 ln(Lambda))] s^-1
   * nu_e = 1/tau_e = 1 / [1.09e16 (Te^3/2) / (n Z^2 ln(Lambda))] s^-1
   * log(Lambda) = Coulomb logarithm
     *log_i = 17.3 - 0.5*np.log(n/1e20) + 1.5*np.log(ti) 
     *log_e = 14.9 - 0.5*np.log(n/1e20) + np.log(te) 
   * lambda = debye length = 2.35e5 (T/n) m
-*For the purposes of collision frequency calculations, ni = ne = n to satisfy quasineutrality. 
+* For the purposes of collision frequency calculations, ni = ne = n to satisfy quasineutrality. 
 
 
 
