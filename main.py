@@ -41,7 +41,6 @@ boltz_jk = 1.3806488e-23
 boltz_evk = 8.6173324e-5
 proton_mass = 1.672621777e-27
 
-
 ###################################
 #Calculate equilibrium parameters #
 ###################################
@@ -110,5 +109,5 @@ f.write('-------------------------------------------------------------------- \n
 f.write('irho = 2 \n')
 f.write('iflux = 0 \n')
 f.write('bishop = 4 \n')
-f.write('local_eq = ".true." \n')
+f.write('local_eq = .true. \n')
 

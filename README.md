@@ -30,7 +30,7 @@ Caveats
 -------
 
 * The sign of the flow shear may not be correct! This program simply outputs the gradient of the flow without changing sign. The real sign of the flow shear will depend on the sign convention used in the experiment. <Reference something here> 
-* Use NetCDF since it seems to be the only thing that reads the TRANSP file. Could try SciPy NetCDF functions as documented here: http://docs.scipy.org/doc/scipy/reference/generated/scipy.io.netcdf.netcdf_file.html 
+* Use python-netcdf4 interface since it seems to be the only thing that reads the TRANSP file. Could try SciPy NetCDF functions as documented here: http://docs.scipy.org/doc/scipy/reference/generated/scipy.io.netcdf.netcdf_file.html 
 
 Plotting Routine
 ----------------
@@ -41,7 +41,11 @@ A rudimentarty plotting routine is also included and works in the following way:
 * Dependent variable are a function of one or two of these variables.
 * Most variables are a function of two independent variables so the standard behaviour requires specifying the index of the other independent variable. For example, if you wanted to plot Q(TIME, XB) as a function of time at the radial location idx = 50: 'python main.py TIME Q 50'. However if you wanted to plot Q as a function of radius for a given time index (= 98): 'python main.py XB Q 98'
 
+Collisions
+----------
 
+*Equations for collision times/frequencies taken from Wesson Section 2.15.
+* t_i
 
 
 
