@@ -6,6 +6,11 @@ import scipy.interpolate as interp
 from netCDF4 import Dataset
 import operator
 
+#function that computes the debye length given T(keV), n(m^-3)
+#Follows NRL plasma formulary
+def debye(temp, dens):
+  return 2.35e5*np.sqrt(temp)/np.sqrt(dens)
+
 in_file =  str(sys.argv[1])
 output_radius =  float(sys.argv[2])
 output_time =  float(sys.argv[3])
@@ -47,8 +52,8 @@ proton_mass = 1.672621777e-27
 equil = {}
 equil['amin'] = (rmaj[-1] - rmaj[0])/2/100
 amin = equil['amin']
-equil['dens_1'] = np.interp(output_radius, x, ni)*1e6/1e19
-equil['dens_2'] = np.interp(output_radius, x, ne)*1e6/1e19
+equil['dens_1'] = np.interp(output_radius, x, ni)*1e6/1e19 #1e19m^-3
+equil['dens_2'] = np.interp(output_radius, x, ne)*1e6/1e19 #1e19m^-3
 equil['temp_1'] = np.interp(output_radius, x, ti)/1000 #keV
 vth = np.sqrt((2*equil['temp_1']*1000*boltz_jk/boltz_evk)/(2*proton_mass))
 equil['temp_2'] = np.interp(output_radius, x, te)/1000 #keV
@@ -71,6 +76,17 @@ equil['tprim_1'] = -(ti[rad_idx+1]-ti[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])/ti
 equil['tprim_2'] = -(te[rad_idx+1]-te[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])/te[rad_idx]
 equil['beta_prime_input'] = (beta[rad_idx+1]-beta[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1]) #See wiki definition: not taking into account B_T variation
 equil['g_exb'] = (omega[rad_idx+1]-omega[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])*(x[rad_idx]/q[radb_idx])*(amin/vth) #q defined on xb grid
+
+#See README for details of collision frequencies
+log_i = 17.3 - 0.5*np.log(equil['dens_1']/10) + 1.5*np.log(equil['temp_1']) # dens_1 already in 1e19m^-3 and temp_1 already in keV
+log_e = 14.9 - 0.5*np.log(equil['dens_1']/10) + np.log(equil['temp_2']) # dens_1 already in 1e19m^-3 and temp_2 already in keV
+tau_i = 6.6e17 * np.sqrt(2) * (equil['temp_1'])**1.5 / (equil['dens_1']*1e19*log_i) # for singly charged deuterium ions => mi/mp=2 and Z=1 
+tau_e = 1.09e16 * (equil['temp_2'])**1.5 / (equil['dens_1']*1e19*log_e) 
+nu_i = 1./tau_i
+nu_e = 1./tau_e
+equil['vnewk_1'] = nu_i*amin/vth
+equil['vnewk_2'] = nu_e*amin/vth
+
 
 f = open('gs2.in', 'w')
 f.write('Equilibrium Parameters: \n')
