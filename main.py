@@ -40,11 +40,24 @@ flux_centres = ncfile.variables['RMJMP'][t_idx,:]
 elongation = ncfile.variables['ELONG'][t_idx,:]
 triang = ncfile.variables['TRIANG'][t_idx,:]
 zeffp = ncfile.variables['ZEFFP'][t_idx,:]
+psi_t = ncfile.variables['TRFMP'][t_idx,:]
 
 #Normalization quantities
 boltz_jk = 1.3806488e-23
 boltz_evk = 8.6173324e-5
 proton_mass = 1.672621777e-27
+
+#Need to calculate factor which relates gradients in TRANSP psi_n (=sqrt(psi_t/psi_tLCFS)) and Miller a_n (= diameter/diameter LCFS)
+flux_rmaj = np.interp(output_radius, np.linspace(-1,1,rmaj.shape[0]), rmaj)
+flux_idx, min_value = min(enumerate(abs(rmaj - flux_rmaj)), key=operator.itemgetter(1))
+mag_axis_idx, min_value = min(enumerate(abs(bpbt)), key=operator.itemgetter(1))
+a_left = (rmaj[flux_idx-1] - rmaj[mag_axis_idx - (flux_idx-1-mag_axis_idx)])/(rmaj[-1] - rmaj[0]) #diameter/diameter of LCFS
+rho_miller = (rmaj[flux_idx] - rmaj[mag_axis_idx - (flux_idx-mag_axis_idx)])/(rmaj[-1] - rmaj[0]) #diameter/diameter of LCFS
+a_right = (rmaj[flux_idx+1] - rmaj[mag_axis_idx - (flux_idx+1-mag_axis_idx)])/(rmaj[-1] - rmaj[0]) #diameter/diameter of LCFS
+psi_left = np.sqrt(psi_t[flux_idx-1]/psi_t[-1]) #sqrt(psi_t/psi_LCFS)
+rho_transp = np.sqrt(psi_t[flux_idx]/psi_t[-1]) #sqrt(psi_t/psi_LCFS)
+psi_right = np.sqrt(psi_t[flux_idx+1]/psi_t[-1]) #sqrt(psi_t/psi_LCFS)
+dpsi_da = (psi_right-psi_left)/(a_right-a_left) # coefficient which relates psi_n and a_n grids
 
 ###################################
 #Calculate equilibrium parameters #
@@ -54,11 +67,12 @@ equil['amin'] = (rmaj[-1] - rmaj[0])/2/100
 amin = equil['amin']
 equil['dens_1'] = np.interp(output_radius, x, ni)*1e6/1e19 #1e19m^-3
 equil['dens_2'] = np.interp(output_radius, x, ne)*1e6/1e19 #1e19m^-3
+equil['mass_1'] = 1.0
+equil['mass_2'] = 1.0/(2.0*1836.0) #Assume D-electron plasma
 equil['temp_1'] = np.interp(output_radius, x, ti)/1000 #keV
 vth = np.sqrt((2*equil['temp_1']*1000*boltz_jk/boltz_evk)/(2*proton_mass))
 equil['temp_2'] = np.interp(output_radius, x, te)/1000 #keV
 equil['omega'] = np.interp(output_radius, x, omega) #rad/s
-mag_axis_idx, min_value = min(enumerate(abs(bpbt)), key=operator.itemgetter(1))
 equil['btref'] = fbtx[mag_axis_idx]*btx[mag_axis_idx]
 beta =  403.0*ni*1e6/1e19*ti/1000/(1e5*equil['btref']**2)
 equil['beta'] = np.interp(output_radius, x, beta)
@@ -70,12 +84,12 @@ equil['zeff'] = np.interp(output_radius, x, zeffp)
 rad_idx, min_value = min(enumerate(abs(x - output_radius)), key=operator.itemgetter(1))
 radb_idx, min_value = min(enumerate(abs(xb - output_radius)), key=operator.itemgetter(1))
 
-equil['fprim_1'] = -(ni[rad_idx+1]-ni[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])/ni[rad_idx]
-equil['fprim_2'] = -(ne[rad_idx+1]-ne[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])/ne[rad_idx]
-equil['tprim_1'] = -(ti[rad_idx+1]-ti[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])/ti[rad_idx]
-equil['tprim_2'] = -(te[rad_idx+1]-te[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])/te[rad_idx]
-equil['beta_prime_input'] = (beta[rad_idx+1]-beta[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1]) #See wiki definition: not taking into account B_T variation
-equil['g_exb'] = (omega[rad_idx+1]-omega[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])*(x[rad_idx]/q[radb_idx])*(amin/vth) #q defined on xb grid
+equil['fprim_1'] = -(ni[rad_idx+1]-ni[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])/ni[rad_idx]*dpsi_da
+equil['fprim_2'] = -(ne[rad_idx+1]-ne[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])/ne[rad_idx]*dpsi_da
+equil['tprim_1'] = -(ti[rad_idx+1]-ti[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])/ti[rad_idx]*dpsi_da
+equil['tprim_2'] = -(te[rad_idx+1]-te[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])/te[rad_idx]*dpsi_da
+equil['beta_prime_input'] = (beta[rad_idx+1]-beta[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])*dpsi_da #See wiki definition: not taking into account B_T variation
+equil['g_exb'] = (omega[rad_idx+1]-omega[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])*(rho_miller/q[radb_idx])*(amin/vth)*dpsi_da #q defined on xb grid
 
 #See README for details of collision frequencies
 log_i = 17.3 - 0.5*np.log(equil['dens_1']/10) + 1.5*np.log(equil['temp_1']) # dens_1 already in 1e19m^-3 and temp_1 already in keV
@@ -100,17 +114,15 @@ f.write('\n')
 #Calculate geoemetry parameters #
 ###################################
 geo = {}
-flux_rmaj = np.interp(output_radius, np.linspace(-1,1,rmaj.shape[0]), rmaj)
-flux_idx, min_value = min(enumerate(abs(rmaj - flux_rmaj)), key=operator.itemgetter(1))
-geo['rhoc'] = (rmaj[flux_idx] - rmaj[mag_axis_idx - (flux_idx-mag_axis_idx)])/(rmaj[-1] - rmaj[0]) #diameter/diameter of LCFS
+geo['rhoc'] = rho_miller
 geo['qinp'] = np.interp(output_radius, xb, q)
-geo['shat'] =  ((q[radb_idx+1]-q[radb_idx-1])/(xb[radb_idx+1]-xb[radb_idx-1]))*(xb[radb_idx]/q[radb_idx])
-geo['s_hat_input'] = ((q[radb_idx+1]-q[radb_idx-1])/(xb[radb_idx+1]-xb[radb_idx-1]))*(xb[radb_idx]/q[radb_idx])
-geo['shift'] = (flux_centres[rad_idx+1]/100/amin-flux_centres[rad_idx-1]/100/amin)/(x[rad_idx+1]-x[rad_idx-1])
+geo['shat'] =  ((q[radb_idx+1]-q[radb_idx-1])/(xb[radb_idx+1]-xb[radb_idx-1]))*(rho_miller/q[radb_idx])*dpsi_da
+geo['s_hat_input'] = ((q[radb_idx+1]-q[radb_idx-1])/(xb[radb_idx+1]-xb[radb_idx-1]))*(rho_miller/q[radb_idx])*dpsi_da
+geo['shift'] = (flux_centres[rad_idx+1]/100/amin-flux_centres[rad_idx-1]/100/amin)/(x[rad_idx+1]-x[rad_idx-1])*dpsi_da
 geo['akappa'] = np.interp(output_radius, x, elongation)
-geo['akappri'] = (elongation[rad_idx+1]-elongation[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])
+geo['akappri'] = (elongation[rad_idx+1]-elongation[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])*dpsi_da
 geo['tri'] = np.interp(output_radius, x, triang)
-geo['tripri'] = (triang[rad_idx+1]-triang[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])
+geo['tripri'] = (triang[rad_idx+1]-triang[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])*dpsi_da
 geo['rmaj'] = rmaj[mag_axis_idx]/100+amin
 geo['r_geo'] = flux_centres[-1]/100+amin
 

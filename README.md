@@ -13,7 +13,7 @@ Input:
 Output:
 -------
 * Produces file called gs2.in
-* Equilibrium parameters, e.g. temperatures, densities, gradients, flows, shears
+* Equilibrium parameters, e.g. temperatures, densities, gradients (see note below), flows, shears
 * Geometric Miller parameters
 * Miscellaneous parameters which need to be set when using Miller parameters (only option for this code so far).
 
@@ -41,6 +41,18 @@ A rudimentarty plotting routine is also included and works in the following way:
 * Independent variables are e.g. TIME, TIME3, X, XB, RMAJM
 * Dependent variable are a function of one or two of these variables.
 * Most variables are a function of two independent variables so the standard behaviour requires specifying the index of the other independent variable. For example, if you wanted to plot Q(TIME, XB) as a function of time at the radial location idx = 50: 'python main.py TIME Q 50'. However if you wanted to plot Q as a function of radius for a given time index (= 98): 'python main.py XB Q 98'
+
+Radial Grids and Gradients
+--------------------------
+* TRANSP uses rho = psi_n= sqrt(psi_t / psi_LCFS) where psi_t is the toroidal flux and psi_LCFS is the toroidal flux of the last closed flux surface.
+* Miller uses rho = a_n = diameter/diameter of LCFS where diameter refers to the diameter of the flux surface at the height of the magnetic axis.
+* Can calculate a geometric coefficient which relates gradients on these two radial grids as follows:
+  * Essentially want to calculate dpsi_n / da_n.
+  * TRANSP file contains psi_t(rmaj) = TRFMP(RMAJM, TIME) which can be used to calculate psi_n at output_radius as well as either side
+  * Can use variable RMAJM(RMAJM, TIME) to calculate the a_n at output_time.
+  * Use finite difference equation to calculate required differential coefficient.
+* Once coefficient has been obtained, can multiply all gradient variables by this number to find what the gradient on a_n grid.
+* Simple variables such as temperature, density, etc. don't require any changes since they are the same in both grids however gradients are defined on the a_n grid when used with Miller. 
 
 Collisions
 ----------
