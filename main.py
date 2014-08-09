@@ -77,7 +77,7 @@ radb_idx, min_value = min(enumerate(abs(xb - output_radius)), key=operator.itemg
 equil = {}
 equil['amin'] = (rmaj[-1] - rmaj[0])/2/100
 amin = equil['amin']
-vth = np.sqrt((2*np.interp(output_radius, x, ti)*1000*boltz_jk/boltz_evk)/(2*proton_mass))
+vth = np.sqrt((2*np.interp(output_radius, x, ti)*boltz_jk/boltz_evk)/(2*proton_mass)) # T(eV)
 equil['omega'] = np.interp(output_radius, x, omega) #rad/s
 equil['btref'] = fbtx[mag_axis_idx]*btx[mag_axis_idx]
 beta =  403.0*nd*1e6/1e19*ti/1000/(1e5*equil['btref']**2) #n_ref(1e19 m^-3), T_ref(keV)
@@ -98,73 +98,107 @@ f.write('\n')
 #Calculate species parameters #
 ###############################
 
-############
-# ELECTRON #
-############
-electron = {}
-electron['dens'] = np.interp(output_radius, x, ne)*1e6/1e19 #1e19m^-3
-electron['mass'] = 1.0/(2.0*1836.0) #Assume D-electron plasma
-electron['temp'] = np.interp(output_radius, x, te)/1000 #keV
-electron['fprim'] = -(ne[rad_idx+1]-ne[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])/ne[rad_idx]*dpsi_da
-electron['tprim'] = -(te[rad_idx+1]-te[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])/te[rad_idx]*dpsi_da
-
-#See README for details of collision frequencies
-log_e = 14.9 - 0.5*np.log(electron['dens']/10) + np.log(electron['temp']) # dens_1 already in 1e19m^-3 and temp_2 already in keV
-tau_e = 1.09e16 * (electron['temp'])**1.5 / (electron['dens']*1e19*log_e) 
-nu_e = 1./tau_e
-electron['vnewk'] = nu_e*amin/vth
-
+#######
+# ION #
+#######
 #ION SPECIES 1 - Deuterium (reference)
 ion_1 = {}
-ion_1['dens'] = np.interp(output_radius, x, nd)*1e6/1e19 #1e19m^-3
+ion_1['dens'] = 1.0 
+n_ref = np.interp(output_radius, x, nd)*1e6/1e19 #1e19m^-3
 ion_1['mass'] = 1.0
-ion_1['temp'] = np.interp(output_radius, x, ti)/1000 #keV
+ion_1['temp'] = 1.0 
+t_ref = np.interp(output_radius, x, ti)/1000 #keV
 ion_1['fprim'] = -(nd[rad_idx+1]-nd[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])/nd[rad_idx]*dpsi_da
 ion_1['tprim'] = -(ti[rad_idx+1]-ti[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])/ti[rad_idx]*dpsi_da
 
-log_i1 = 17.3 - 0.5*np.log(ion_1['dens']/10) + 1.5*np.log(ion_1['temp']) # dens_1 already in 1e19m^-3 and temp_1 already in keV
-tau_i1 = 6.6e17 * np.sqrt(2) * (ion_1['temp'])**1.5 / (ion_1['dens']*1e19*log_i1) # for singly charged deuterium ions => mi/mp=2 and Z=1 
+log_i1 = 17.3 - 0.5*np.log(n_ref/10) + 1.5*np.log(t_ref) # dens_1 already in 1e19m^-3 and temp_1 already in keV
+tau_i1 = 6.6e17 * np.sqrt(2) * (t_ref)**1.5 / (n_ref*1e19*log_i1) # for singly charged deuterium ions => mi/mp=2 and Z=1 
 nu_i1 = 1./tau_i1
 ion_1['vnewk'] = nu_i1*amin/vth
 
 #ION SPECIES 2 - Hydrogen
 ion_2 = {}
-ion_2['dens'] = np.interp(output_radius, x, nh)*1e6/1e19 #1e19m^-3
+ion_2['dens'] = np.interp(output_radius, x, nh)*1e6/1e19/n_ref #1e19m^-3
+ion_2_dens = np.interp(output_radius, x, nh)*1e6/1e19 #1e19m^-3
 ion_2['mass'] = 0.5
-ion_2['temp'] = np.interp(output_radius, x, ti)/1000 #keV
+ion_2['temp'] = np.interp(output_radius, x, ti)/1000/t_ref #keV
+ion_2_temp = np.interp(output_radius, x, ti)/1000 #keV
 ion_2['fprim'] = -(nh[rad_idx+1]-nh[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])/nh[rad_idx]*dpsi_da
 ion_2['tprim'] = -(ti[rad_idx+1]-ti[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])/ti[rad_idx]*dpsi_da
 
-log_i2 = 17.3 - 0.5*np.log(ion_2['dens']/10) + 1.5*np.log(ion_2['temp']) # dens_1 already in 1e19m^-3 and temp_1 already in keV
-tau_i2 = 6.6e17 * np.sqrt(2) * (ion_2['temp'])**1.5 / (ion_2['dens']*1e19*log_i2) # for singly charged deuterium ions => mi/mp=2 and Z=1 
+log_i2 = 17.3 - 0.5*np.log(ion_2_dens/10) + 1.5*np.log(ion_2_temp) # dens_1 already in 1e19m^-3 and temp_1 already in keV
+tau_i2 = 6.6e17 * np.sqrt(2) * (ion_2_temp)**1.5 / (ion_2_dens*1e19*log_i2) # for singly charged deuterium ions => mi/mp=2 and Z=1 
 nu_i2 = 1./tau_i2
 ion_2['vnewk'] = nu_i2*amin/vth
 
 #ION SPECIES 3 - Impurity
 ion_3 = {}
-ion_3['dens'] = np.interp(output_radius, x, nimp)*1e6/1e19 #1e19m^-3
-ion_3['mass'] = 0.5
-ion_3['temp'] = np.interp(output_radius, x, timp)/1000 #keV
+ion_3['dens'] = np.interp(output_radius, x, nimp)*1e6/1e19/n_ref #1e19m^-3
+ion_3_dens = np.interp(output_radius, x, nimp)*1e6/1e19 #1e19m^-3
+ion_3['mass'] = 6.0
+ion_3['temp'] = np.interp(output_radius, x, timp)/1000/t_ref #keV
+ion_3_temp = np.interp(output_radius, x, timp)/1000 #keV
 ion_3['fprim'] = -(nimp[rad_idx+1]-nimp[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])/nimp[rad_idx]*dpsi_da
 ion_3['tprim'] = -(timp[rad_idx+1]-timp[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])/timp[rad_idx]*dpsi_da
 
-log_i3 = 17.3 - 0.5*np.log(ion_3['dens']/10) + 1.5*np.log(ion_3['temp']) # dens_1 already in 1e19m^-3 and temp_1 already in keV
-tau_i3 = 6.6e17 * np.sqrt(2) * (ion_3['temp'])**1.5 / (ion_3['dens']*1e19*log_i3) # for singly charged deuterium ions => mi/mp=2 and Z=1 
+log_i3 = 17.3 - 0.5*np.log(ion_3_dens/10) + 1.5*np.log(ion_3_temp) # dens_1 already in 1e19m^-3 and temp_1 already in keV
+tau_i3 = 6.6e17 * np.sqrt(2) * (ion_3_temp)**1.5 / (ion_3_dens*1e19*log_i3) # for singly charged deuterium ions => mi/mp=2 and Z=1 
 nu_i3 = 1./tau_i3
 ion_3['vnewk'] = nu_i3*amin/vth
 
+#FAST ION SPECIES
+ion_4 = {}
+ion_4['dens'] = np.interp(output_radius, x, nb)*1e6/1e19/n_ref #1e19m^-3
+ion_4_dens = np.interp(output_radius, x, nb)*1e6/1e19 #1e19m^-3
+ion_4['mass'] = 1.0
+ion_4['temp'] = np.interp(output_radius, x, tb)/1000/t_ref #keV
+ion_4_temp = np.interp(output_radius, x, tb)/1000 #keV
+ion_4['fprim'] = -(nb[rad_idx+1]-nb[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])/nb[rad_idx]*dpsi_da
+ion_4['tprim'] = -(tb[rad_idx+1]-tb[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])/tb[rad_idx]*dpsi_da
+
+log_i4 = 17.3 - 0.5*np.log(ion_4_dens/10) + 1.5*np.log(ion_4_temp) # dens_1 already in 1e19m^-3 and temp_1 already in keV
+tau_i4 = 6.6e17 * np.sqrt(2) * (ion_4_temp)**1.5 / (ion_4_dens*1e19*log_i4) # for singly charged deuterium ions => mi/mp=2 and Z=1 
+nu_i4 = 1./tau_i4
+ion_4['vnewk'] = nu_i4*amin/vth
+
+############
+# ELECTRON #
+############
+electron = {}
+electron['dens'] = np.interp(output_radius, x, ne)*1e6/1e19/n_ref #1e19m^-3
+electron_dens = np.interp(output_radius, x, ne)*1e6/1e19 #1e19m^-3
+electron['mass'] = 1.0/(2.0*1836.0) #Assume D-electron plasma
+electron['temp'] = np.interp(output_radius, x, te)/1000/t_ref #keV
+electron_temp = np.interp(output_radius, x, te)/1000 #keV
+electron['fprim'] = -(ne[rad_idx+1]-ne[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])/ne[rad_idx]*dpsi_da
+electron['tprim'] = -(te[rad_idx+1]-te[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])/te[rad_idx]*dpsi_da
+
+#See README for details of collision frequencies
+log_e = 14.9 - 0.5*np.log(electron_dens/10) + np.log(electron_temp) # dens_1 already in 1e19m^-3 and temp_2 already in keV
+tau_e = 1.09e16 * (electron_temp)**1.5 / (electron_dens*1e19*log_e) 
+nu_e = 1./tau_e
+electron['vnewk'] = nu_e*amin/vth
+
 f.write('Species Parameters: \n')
 f.write('------------------- \n')
-f.write('Electron: \n')
-for name, value in sorted(electron.items()):
-  f.write(name + ' = ' + str(value) + '\n')
-f.write('\n')
 f.write('Deuterium (Reference): \n')
 for name, value in sorted(ion_1.items()):
   f.write(name + ' = ' + str(value) + '\n')
 f.write('\n')
+f.write('Electron: \n')
+for name, value in sorted(electron.items()):
+  f.write(name + ' = ' + str(value) + '\n')
+f.write('\n')
 f.write('Hydrogen: \n')
 for name, value in sorted(ion_2.items()):
+  f.write(name + ' = ' + str(value) + '\n')
+f.write('\n')
+f.write('Impurity: \n')
+for name, value in sorted(ion_3.items()):
+  f.write(name + ' = ' + str(value) + '\n')
+f.write('\n')
+f.write('Beam Ions: \n')
+for name, value in sorted(ion_4.items()):
   f.write(name + ' = ' + str(value) + '\n')
 f.write('\n')
 
