@@ -5,6 +5,7 @@ import scipy.optimize as opt
 import scipy.interpolate as interp
 from netCDF4 import Dataset
 import operator
+import seaborn as sns
 
 in_file =  str(sys.argv[1])
 var1 =  str(sys.argv[2])
