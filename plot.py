@@ -13,8 +13,8 @@ idx = int(sys.argv[4])
 ncfile = Dataset(in_file, 'r', format='NETCDF3')
 
 #Read relevant data from TRANSP file
-x = ncfile.variables[var1][:]
-y = ncfile.variables[var2][:]
+x = np.array(ncfile.variables[var1][:])
+y = np.array(ncfile.variables[var2][:])
 
 if var1 == 'TIME' or var1 == 'TIME3':
   plt.plot(x[:,idx],y[:,idx])
