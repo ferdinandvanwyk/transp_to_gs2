@@ -86,6 +86,10 @@ equil['beta'] = np.interp(output_radius, x, beta)
 equil['zeff'] = np.interp(output_radius, x, zeffp)
 equil['beta_prime_input'] = (beta_full[rad_idx+1]-beta_full[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])*dpsi_da #See wiki definition: not taking into account B_T variation
 equil['g_exb'] = (omega[rad_idx+1]-omega[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])*(rho_miller/q[radb_idx])*(amin/vth)*dpsi_da #q defined on xb grid
+equil['dpsi_da'] = dpsi_da
+equil['bpol'] = np.interp(output_radius, x, bpol)
+btor = fbtx*btx
+equil['btor'] = btor[flux_idx] 
 
 f = open('gs2.in', 'w')
 f.write('Equilibrium Parameters: \n')
