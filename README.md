@@ -68,6 +68,7 @@ Collisions
 * From above explanation it should be clear that collisions between ion species is not being calculated. Only the collision frequency of the ion species with itself is being calculated. To do a GS2 simulation with many species you will need to recalculate collision frequencies consistent with the number of species included in the simulation. The default for this code works for ion simulations with AE and kinetic ions and electrons.
 
 
+Disclaimer:
+-----------
 
-
-
+This software is provided as is and may contain bugs and/or mistakes. I have been very careful but use at your own risk. The equations have been kept as close as possible to their mathematical form for transparency so any problems should be easy to diagnose.
