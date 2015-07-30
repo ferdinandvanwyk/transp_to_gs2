@@ -35,6 +35,7 @@ timp = ncfile.variables['TX'][t_idx,:] #Impurity temp
 tb = ncfile.variables['EBEAM_D'][t_idx,:] #Energy/temp of the beam ions
 te = ncfile.variables['TE'][t_idx,:]
 fbtx = ncfile.variables['FBTX'][t_idx,:]
+fbx = ncfile.variables['FBX'][t_idx,:]
 bpbt = ncfile.variables['FBPBT'][t_idx,:]
 btx = ncfile.variables['BTX'][t_idx,:]
 rmaj = ncfile.variables['RMAJM'][t_idx,:]
@@ -79,17 +80,18 @@ equil['amin'] = (rmaj[-1] - rmaj[0])/2/100
 amin = equil['amin']
 vth = np.sqrt((2*np.interp(output_radius, x, ti)*boltz_jk/boltz_evk)/(2*proton_mass)) # T(eV)
 equil['omega'] = np.interp(output_radius, x, omega) #rad/s
-equil['btref'] = fbtx[mag_axis_idx]*btx[mag_axis_idx]
-beta =  403.0*nd*1e6/1e19*ti/1000/(1e5*equil['btref']**2) #n_ref(1e19 m^-3), T_ref(keV)
-beta_full =  403.0*(nd*ti + nh*ti + nimp*timp + nb*tb + ne*te)*1e6/1e19/1000/(1e5*equil['btref']**2) #n_ref(1e19 m^-3), T_ref(keV)
+btor = fbtx*btx
+b = fbx*btx
+equil['bref'] = btor[mag_axis_idx]
+beta =  403.0*nd*1e6/1e19*ti/1000/(1e5*equil['bref']**2) #n_ref(1e19 m^-3), T_ref(keV)
+beta_full =  403.0*(nd*ti + nh*ti + nimp*timp + nb*tb + ne*te)*1e6/1e19/1000/(1e5*equil['bref']**2) #n_ref(1e19 m^-3), T_ref(keV)
 equil['beta'] = np.interp(output_radius, x, beta)
 equil['zeff'] = np.interp(output_radius, x, zeffp)
 equil['beta_prime_input'] = (beta_full[rad_idx+1]-beta_full[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])*dpsi_da #See wiki definition: not taking into account B_T variation
 equil['g_exb'] = (omega[rad_idx+1]-omega[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])*(rho_miller/q[radb_idx])*(amin/vth)*dpsi_da #q defined on xb grid
 equil['dpsi_da'] = dpsi_da
-equil['bpol'] = np.interp(output_radius, x, bpol)
-btor = fbtx*btx
-equil['btor'] = btor[flux_idx] 
+equil['bpol_flux_tube'] = np.interp(output_radius, x, bpol)
+equil['btor_flux_tube'] = btor[flux_idx] 
 
 f = open('gs2.in', 'w')
 f.write('Equilibrium Parameters: \n')
@@ -234,3 +236,42 @@ f.write('irho = 2 \n')
 f.write('iflux = 0 \n')
 f.write('bishop = 4 \n')
 f.write('local_eq = .true. \n')
+f.write('\n')
+
+#################################################
+# Calculate reference values for normalizations #
+#################################################
+e = 1.60217657e-19
+ref = {}
+ref['vref'] = vth
+ref['lref'] = amin
+ref['nref'] = n_ref*1e19
+ref['tref'] = t_ref*1000/boltz_evk
+ref['bref'] = b[mag_axis_idx] 
+larmor_freq_ref = e * ref['bref'] / (2*proton_mass)
+ref['rhoref'] = vth / larmor_freq_ref
+
+f.write('Reference Parameters: \n')
+f.write('--------------------- \n')
+for name, value in sorted(ref.items()):
+  f.write(name + ' = ' + str(value) + '\n')
+f.write('\n')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
