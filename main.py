@@ -5,8 +5,6 @@ import warnings
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator, AutoMinorLocator
-import scipy.optimize as opt
-import scipy.interpolate as interp
 from netCDF4 import Dataset
 
 #function that computes the debye length given T(keV), n(m^-3)
