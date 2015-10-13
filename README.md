@@ -7,7 +7,7 @@ Input:
 -----
 * Takes the name of the TRANSP file as first command line input.
 * Second command line input is radial location of output (will interpolate). This will be a value between 0 and 1 specifying the value of the square root of the toroidal flux.
-* Third command line input is time for output (will not interpolate).
+* Third command line input is time for output (will determine nearest time index, i.e. won't interpolate).
 * Input command therefore looks like: 
 ``` 
 $ python main.py <filename> <radius> <time>
