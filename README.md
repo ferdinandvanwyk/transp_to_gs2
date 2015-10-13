@@ -16,9 +16,12 @@ $ python main.py <filename> <radius> <time>
 Output:
 -------
 * Produces file called gs2.in
-* Equilibrium parameters, e.g. temperatures, densities, gradients (see note below), flows, shears
-* Geometric Miller parameters
-* Miscellaneous parameters which need to be set when using Miller parameters (only option for this code so far).
+* Equilibrium parameters, e.g. temperatures, densities, gradients (see note 
+  below), flows, shears
+* Geometric Miller parameters (with appropriate corrections for GS2, see 
+  http://arxiv.org/abs/1403.3293)
+* Miscellaneous parameters which need to be set when using Miller parameters 
+  (only option for this code so far).
 
 Requirements:
 -------------
