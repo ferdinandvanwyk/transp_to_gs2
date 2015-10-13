@@ -1,5 +1,6 @@
 import os, sys
 import operator
+import warnings
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -91,7 +92,13 @@ x = ncfile.variables['X'][t_idx,:]
 xb = ncfile.variables['XB'][t_idx,:]
 ni_tot = ncfile.variables['NI'][t_idx,:]
 nd = ncfile.variables['ND'][t_idx,:] #Deuterium (reference species) density
-nh = ncfile.variables['NH'][t_idx,:] #Hydrogen density
+
+try:
+    nh = ncfile.variables['NH'][t_idx,:] #Hydrogen density
+except KeyError:
+    warnings.warn('No H species detected. Parameters will adjust accordingly.')
+    h_spec_bool = False
+    
 nimp = ncfile.variables['NIMP'][t_idx,:] #Impurity ion density
 nb = ncfile.variables['BDENS'][t_idx,:] #Beam ion density
 ne = ncfile.variables['NE'][t_idx,:]
@@ -150,7 +157,10 @@ btor = fbtx*btx
 b = fbx*btx
 equil['bref'] = btor[mag_axis_idx]
 beta =  403.0*nd*1e6/1e19*ti/1000/(1e5*equil['bref']**2) #n_ref(1e19 m^-3), T_ref(keV)
-beta_full =  403.0*(nd*ti + nh*ti + nimp*timp + nb*tb + ne*te)*1e6/1e19/1000/(1e5*equil['bref']**2) #n_ref(1e19 m^-3), T_ref(keV)
+if h_spec_bool:
+    beta_full =  403.0*(nd*ti + nh*ti + nimp*timp + nb*tb + ne*te)*1e6/1e19/1000/(1e5*equil['bref']**2) #n_ref(1e19 m^-3), T_ref(keV)
+else:
+    beta_full =  403.0*(nd*ti + nimp*timp + nb*tb + ne*te)*1e6/1e19/1000/(1e5*equil['bref']**2) #n_ref(1e19 m^-3), T_ref(keV)
 equil['beta'] = np.interp(output_radius, x, beta)
 equil['zeff'] = np.interp(output_radius, x, zeffp)
 equil['beta_prime_input'] = (beta_full[rad_idx+1]-beta_full[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])*dpsi_da #See wiki definition: not taking into account B_T variation
@@ -188,20 +198,21 @@ tau_i1 = 6.6e17 * np.sqrt(2) * (t_ref)**1.5 / (n_ref*1e19*log_i1) # for singly c
 nu_i1 = 1./tau_i1
 ion_1['vnewk'] = nu_i1*amin/vth
 
-#ION SPECIES 2 - Hydrogen
-ion_2 = {}
-ion_2['dens'] = np.interp(output_radius, x, nh)*1e6/1e19/n_ref #1e19m^-3
-ion_2_dens = np.interp(output_radius, x, nh)*1e6/1e19 #1e19m^-3
-ion_2['mass'] = 0.5
-ion_2['temp'] = np.interp(output_radius, x, ti)/1000/t_ref #keV
-ion_2_temp = np.interp(output_radius, x, ti)/1000 #keV
-ion_2['fprim'] = -(nh[rad_idx+1]-nh[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])/nh[rad_idx]*dpsi_da
-ion_2['tprim'] = -(ti[rad_idx+1]-ti[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])/ti[rad_idx]*dpsi_da
+if h_spec_bool:
+    #ION SPECIES 2 - Hydrogen
+    ion_2 = {}
+    ion_2['dens'] = np.interp(output_radius, x, nh)*1e6/1e19/n_ref #1e19m^-3
+    ion_2_dens = np.interp(output_radius, x, nh)*1e6/1e19 #1e19m^-3
+    ion_2['mass'] = 0.5
+    ion_2['temp'] = np.interp(output_radius, x, ti)/1000/t_ref #keV
+    ion_2_temp = np.interp(output_radius, x, ti)/1000 #keV
+    ion_2['fprim'] = -(nh[rad_idx+1]-nh[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])/nh[rad_idx]*dpsi_da
+    ion_2['tprim'] = -(ti[rad_idx+1]-ti[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])/ti[rad_idx]*dpsi_da
 
-log_i2 = 17.3 - 0.5*np.log(ion_2_dens/10) + 1.5*np.log(ion_2_temp) # dens_1 already in 1e19m^-3 and temp_1 already in keV
-tau_i2 = 6.6e17 * np.sqrt(2) * (ion_2_temp)**1.5 / (ion_2_dens*1e19*log_i2) 
-nu_i2 = 1./tau_i2
-ion_2['vnewk'] = nu_i2*amin/vth
+    log_i2 = 17.3 - 0.5*np.log(ion_2_dens/10) + 1.5*np.log(ion_2_temp) # dens_1 already in 1e19m^-3 and temp_1 already in keV
+    tau_i2 = 6.6e17 * np.sqrt(2) * (ion_2_temp)**1.5 / (ion_2_dens*1e19*log_i2) 
+    nu_i2 = 1./tau_i2
+    ion_2['vnewk'] = nu_i2*amin/vth
 
 #ION SPECIES 3 - Impurity
 ion_3 = {}
@@ -261,10 +272,11 @@ f.write('Electron: \n')
 for name, value in sorted(electron.items()):
   f.write(name + ' = ' + str(value) + '\n')
 f.write('\n')
-f.write('Hydrogen: \n')
-for name, value in sorted(ion_2.items()):
-  f.write(name + ' = ' + str(value) + '\n')
-f.write('\n')
+if h_spec_bool:
+    f.write('Hydrogen: \n')
+    for name, value in sorted(ion_2.items()):
+      f.write(name + ' = ' + str(value) + '\n')
+    f.write('\n')
 f.write('Impurity: \n')
 for name, value in sorted(ion_3.items()):
   f.write(name + ' = ' + str(value) + '\n')
@@ -334,7 +346,6 @@ plot_dash(x, beta_full, output_radius, 'beta.png')
 plot_dash(x, ti, output_radius, 'ti.png')
 plot_dash(x, te, output_radius, 'te.png')
 plot_dash(x, nd, output_radius, 'n_D.png')
-plot_dash(x, nh, output_radius, 'n_H.png')
 plot_dash(x, nb, output_radius, 'n_beam.png')
 plot_dash(x, nimp, output_radius, 'n_impurity.png')
 plot_dash(x, ne, output_radius, 'ne.png')
@@ -347,7 +358,6 @@ plot_gradient(x, omega, output_radius, 'g_exb.png')
 plot_gradient(x, ti, output_radius, 'tprim_1.png')
 plot_gradient(x, te, output_radius, 'tprim_2.png')
 plot_gradient(x, nd, output_radius, 'fprim_D.png')
-plot_gradient(x, nh, output_radius, 'fprim_H.png')
 plot_gradient(x, nb, output_radius, 'fprim_beam.png')
 plot_gradient(x, nimp, output_radius, 'fprim_impurity.png')
 plot_gradient(x, ne, output_radius, 'fprim_2.png')
@@ -355,21 +365,6 @@ plot_gradient(xb, q, output_radius, 'shat.png')
 plot_gradient(xb, elongation, output_radius, 'akappri.png')
 plot_gradient(xb, triang, output_radius, 'tripri.png')
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+if h_spec_bool:
+    plot_dash(x, nh, output_radius, 'n_H.png')
+    plot_gradient(x, nh, output_radius, 'fprim_H.png')
