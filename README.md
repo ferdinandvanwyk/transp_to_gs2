@@ -1,4 +1,4 @@
-transp_read
+transp_to_gs2
 ===========
 
 Reads a TRANSP output file and outputs parameters relevant to a GS2 simulation
