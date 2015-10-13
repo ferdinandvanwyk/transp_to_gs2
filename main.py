@@ -93,6 +93,7 @@ nd = ncfile.variables['ND'][t_idx,:] #Deuterium (reference species) density
 
 try:
     nh = ncfile.variables['NH'][t_idx,:] #Hydrogen density
+    h_spec_bool = True
 except KeyError:
     warnings.warn('No H species detected. Parameters will adjust accordingly.')
     h_spec_bool = False
