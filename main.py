@@ -1,26 +1,91 @@
 import os, sys
+import operator
+
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MultipleLocator, AutoMinorLocator
 import scipy.optimize as opt
 import scipy.interpolate as interp
 from netCDF4 import Dataset
-import operator
 
 #function that computes the debye length given T(keV), n(m^-3)
 #Follows NRL plasma formulary
 def debye(temp, dens):
   return 2.35e5*np.sqrt(temp)/np.sqrt(dens)
 
+def plot_dash(x, y, x0, filename):
+    """
+    Plot the profile with a dashed line at the radial location of interest.
+
+    Parameters
+    ----------
+    x : array_like
+        Independent variable
+    y : array_like
+        Dependent variable
+    x0 : float
+        Position along x to plot the dashed line
+    filename : str
+        Name of saved plot
+    """
+
+    plt.clf()
+    fig, ax = plt.subplots()
+    plt.plot(x, y)
+    ax.xaxis.set_minor_locator(AutoMinorLocator())
+    ax.yaxis.set_minor_locator(AutoMinorLocator())
+    plt.axvline(x0, color='r', ls='--')
+    ax.grid(b=True, which='major')
+    ax.grid(b=True, which='minor')
+    plt.savefig('plot_checks/' + filename)
+    plt.close(fig)
+
+def plot_gradient(x, y, x0, filename):
+    """
+    Plot the profile with a dashed line at the radial location of interest.
+
+    Parameters
+    ----------
+    x : array_like
+        Independent variable
+    y : array_like
+        Dependent variable
+    x0 : float
+        Position along x to plot the dashed line
+    filename : str
+        Name of saved plot
+    """
+
+    y_grad = np.gradient(y, x[1] - x[0])
+    slope = np.interp(x0, x, y_grad)
+    y0 = np.interp(x0, x, y)
+
+    plt.clf()
+    fig, ax = plt.subplots()
+    plt.plot(x, y)
+    plt.plot(x, slope*x + (y0 - slope*x0), 'r--')
+    ax.xaxis.set_minor_locator(AutoMinorLocator())
+    ax.yaxis.set_minor_locator(AutoMinorLocator())
+    ax.grid(b=True, which='major')
+    ax.grid(b=True, which='minor')
+    plt.savefig('plot_checks/' + filename)
+    plt.close(fig)
+
 in_file =  str(sys.argv[1])
 output_radius =  float(sys.argv[2])
 output_time =  float(sys.argv[3])
 ncfile = Dataset(in_file, 'r', format='NETCDF3')
 
+# Create directory for plot checks and clear if already exists
+os.system('mkdir plot_checks')
+os.system('rm  -f plot_checks/*')
+
 #Read relevant data from TRANSP file
 time = ncfile.variables['TIME'][:]
 
 #Convert input time to an index
-t_idx, min_value = min(enumerate(abs(time - output_time)), key=operator.itemgetter(1))
+t_idx, min_value = min(enumerate(abs(time - output_time)), 
+                       key=operator.itemgetter(1))
 
 x = ncfile.variables['X'][t_idx,:]
 xb = ncfile.variables['XB'][t_idx,:]
@@ -49,12 +114,13 @@ triang = ncfile.variables['TRIANG'][t_idx,:]
 zeffp = ncfile.variables['ZEFFP'][t_idx,:]
 psi_t = ncfile.variables['TRFMP'][t_idx,:]
 
-#Normalization quantities
+# Normalization quantities
 boltz_jk = 1.3806488e-23
 boltz_evk = 8.6173324e-5
 proton_mass = 1.672621777e-27
 
-#Need to calculate factor which relates gradients in TRANSP psi_n (=sqrt(psi_t/psi_tLCFS)) and Miller a_n (= diameter/diameter LCFS)
+# Need to calculate factor which relates gradients in TRANSP psi_n 
+# (=sqrt(psi_t/psi_tLCFS)) and Miller a_n (= diameter/diameter LCFS)
 flux_rmaj = np.interp(output_radius, np.linspace(-1,1,rmaj.shape[0]), rmaj)
 flux_idx, min_value = min(enumerate(abs(rmaj - flux_rmaj)), key=operator.itemgetter(1))
 mag_axis_idx, min_value = min(enumerate(abs(bpbt)), key=operator.itemgetter(1))
@@ -133,7 +199,7 @@ ion_2['fprim'] = -(nh[rad_idx+1]-nh[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])/nh[r
 ion_2['tprim'] = -(ti[rad_idx+1]-ti[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])/ti[rad_idx]*dpsi_da
 
 log_i2 = 17.3 - 0.5*np.log(ion_2_dens/10) + 1.5*np.log(ion_2_temp) # dens_1 already in 1e19m^-3 and temp_1 already in keV
-tau_i2 = 6.6e17 * np.sqrt(2) * (ion_2_temp)**1.5 / (ion_2_dens*1e19*log_i2) # for singly charged deuterium ions => mi/mp=2 and Z=1 
+tau_i2 = 6.6e17 * np.sqrt(2) * (ion_2_temp)**1.5 / (ion_2_dens*1e19*log_i2) 
 nu_i2 = 1./tau_i2
 ion_2['vnewk'] = nu_i2*amin/vth
 
@@ -148,7 +214,7 @@ ion_3['fprim'] = -(nimp[rad_idx+1]-nimp[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])/
 ion_3['tprim'] = -(timp[rad_idx+1]-timp[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])/timp[rad_idx]*dpsi_da
 
 log_i3 = 17.3 - 0.5*np.log(ion_3_dens/10) + 1.5*np.log(ion_3_temp) # dens_1 already in 1e19m^-3 and temp_1 already in keV
-tau_i3 = 6.6e17 * np.sqrt(2) * (ion_3_temp)**1.5 / (ion_3_dens*1e19*log_i3) # for singly charged deuterium ions => mi/mp=2 and Z=1 
+tau_i3 = 6.6e17 * np.sqrt(2) * (ion_3_temp)**1.5 / (ion_3_dens*1e19*log_i3)
 nu_i3 = 1./tau_i3
 ion_3['vnewk'] = nu_i3*amin/vth
 
@@ -163,7 +229,7 @@ ion_4['fprim'] = -(nb[rad_idx+1]-nb[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])/nb[r
 ion_4['tprim'] = -(tb[rad_idx+1]-tb[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])/tb[rad_idx]*dpsi_da
 
 log_i4 = 17.3 - 0.5*np.log(ion_4_dens/10) + 1.5*np.log(ion_4_temp) # dens_1 already in 1e19m^-3 and temp_1 already in keV
-tau_i4 = 6.6e17 * np.sqrt(2) * (ion_4_temp)**1.5 / (ion_4_dens*1e19*log_i4) # for singly charged deuterium ions => mi/mp=2 and Z=1 
+tau_i4 = 6.6e17 * np.sqrt(2) * (ion_4_temp)**1.5 / (ion_4_dens*1e19*log_i4)
 nu_i4 = 1./tau_i4
 ion_4['vnewk'] = nu_i4*amin/vth
 
@@ -256,6 +322,38 @@ f.write('--------------------- \n')
 for name, value in sorted(ref.items()):
   f.write(name + ' = ' + str(value) + '\n')
 f.write('\n')
+
+####################
+# Diagnostic plots #
+####################
+
+plot_dash(x, omega, output_radius, 'omega.png')
+plot_dash(rmaj, btor, rmaj[mag_axis_idx], 'bref.png')
+plot_dash(x, beta, output_radius, 'beta_ref.png')
+plot_dash(x, beta_full, output_radius, 'beta.png')
+plot_dash(x, ti, output_radius, 'ti.png')
+plot_dash(x, te, output_radius, 'te.png')
+plot_dash(x, nd, output_radius, 'n_D.png')
+plot_dash(x, nh, output_radius, 'n_H.png')
+plot_dash(x, nb, output_radius, 'n_beam.png')
+plot_dash(x, nimp, output_radius, 'n_impurity.png')
+plot_dash(x, ne, output_radius, 'ne.png')
+plot_dash(xb, q, output_radius, 'q.png')
+plot_dash(xb, elongation, output_radius, 'akappa.png')
+plot_dash(xb, triang, output_radius, 'tri.png')
+
+plot_gradient(x, beta_full, output_radius, 'beta_prime.png')
+plot_gradient(x, omega, output_radius, 'g_exb.png')
+plot_gradient(x, ti, output_radius, 'tprim_1.png')
+plot_gradient(x, te, output_radius, 'tprim_2.png')
+plot_gradient(x, nd, output_radius, 'fprim_D.png')
+plot_gradient(x, nh, output_radius, 'fprim_H.png')
+plot_gradient(x, nb, output_radius, 'fprim_beam.png')
+plot_gradient(x, nimp, output_radius, 'fprim_impurity.png')
+plot_gradient(x, ne, output_radius, 'fprim_2.png')
+plot_gradient(xb, q, output_radius, 'shat.png')
+plot_gradient(xb, elongation, output_radius, 'akappri.png')
+plot_gradient(xb, triang, output_radius, 'tripri.png')
 
 
 
