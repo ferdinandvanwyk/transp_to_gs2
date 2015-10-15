@@ -35,18 +35,8 @@ Requirements:
 Caveats
 -------
 
-* The sign of the flow shear may not be correct! This program simply outputs the gradient of the flow without changing sign. The real sign of the flow shear will depend on the sign convention used in the experiment. <Reference something here>
-* Use python-netcdf4 interface since it seems to be the only thing that reads the TRANSP file. Could try SciPy NetCDF functions as documented here: http://docs.scipy.org/doc/scipy/reference/generated/scipy.io.netcdf.netcdf_file.html
+* The sign of the flow shear may not be correct! This program simply outputs the gradient of the flow without changing sign. The real sign of the flow shear will depend on the sign convention used in the experiment.
 * Electron and ion densities and temperatures are normalized to the reference species (D) values.
-
-Plotting Routine
-----------------
-A rudimentarty plotting routine is also included and works in the following way:
-
-* It can be called as: python plot.py (filename) (independent variable) (dependent variable) (index of other dimension)
-* Independent variables are e.g. TIME, TIME3, X, XB, RMAJM
-* Dependent variable are a function of one or two of these variables.
-* Most variables are a function of two independent variables so the standard behaviour requires specifying the index of the other independent variable. For example, if you wanted to plot Q(TIME, XB) as a function of time at the radial location idx = 50: 'python plot.py (filename) TIME Q 50'. However if you wanted to plot Q as a function of radius for a given time index (= 98): 'python plot.py (filename) XB Q 98'
 
 Radial Grids and Gradients
 --------------------------
@@ -74,3 +64,12 @@ Collisions
     t_e^1.5)
 * For the purposes of collision frequency calculations, ni = ne = n to satisfy
     quasineutrality.
+
+Plotting Routine
+----------------
+A rudimentarty plotting routine is also included and works in the following way:
+
+* It can be called as: python plot.py (filename) (independent variable) (dependent variable) (index of other dimension)
+* Independent variables are e.g. TIME, TIME3, X, XB, RMAJM
+* Dependent variable are a function of one or two of these variables.
+* Most variables are a function of two independent variables so the standard behaviour requires specifying the index of the other independent variable. For example, if you wanted to plot Q(TIME, XB) as a function of time at the radial location idx = 50: 'python plot.py (filename) TIME Q 50'. However if you wanted to plot Q as a function of radius for a given time index (= 98): 'python plot.py (filename) XB Q 98'
