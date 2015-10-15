@@ -83,7 +83,7 @@ os.system('rm  -f plot_checks/*')
 time = ncfile.variables['TIME'][:]
 
 #Convert input time to an index
-t_idx, min_value = min(enumerate(abs(time - output_time)), 
+t_idx, min_value = min(enumerate(abs(time - output_time)),
                        key=operator.itemgetter(1))
 
 x = ncfile.variables['X'][t_idx,:]
@@ -97,7 +97,7 @@ try:
 except KeyError:
     warnings.warn('No H species detected. Parameters will adjust accordingly.')
     h_spec_bool = False
-    
+
 nimp = ncfile.variables['NIMP'][t_idx,:] #Impurity ion density
 nb = ncfile.variables['BDENS'][t_idx,:] #Beam ion density
 ne = ncfile.variables['NE'][t_idx,:]
@@ -125,7 +125,7 @@ boltz_jk = 1.3806488e-23
 boltz_evk = 8.6173324e-5
 proton_mass = 1.672621777e-27
 
-# Need to calculate factor which relates gradients in TRANSP psi_n 
+# Need to calculate factor which relates gradients in TRANSP psi_n
 # (=sqrt(psi_t/psi_tLCFS)) and Miller a_n (= diameter/diameter LCFS)
 flux_rmaj = np.interp(output_radius, np.linspace(-1,1,rmaj.shape[0]), rmaj)
 flux_idx, min_value = min(enumerate(abs(rmaj - flux_rmaj)), key=operator.itemgetter(1))
@@ -166,7 +166,7 @@ equil['beta_prime_input'] = (beta_full[rad_idx+1]-beta_full[rad_idx-1])/(x[rad_i
 equil['g_exb'] = (omega[rad_idx+1]-omega[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])*(rho_miller/q[radb_idx])*(amin/vth)*dpsi_da #q defined on xb grid
 equil['dpsi_da'] = dpsi_da
 equil['bpol_flux_tube'] = np.interp(output_radius, x, bpol)
-equil['btor_flux_tube'] = btor[flux_idx] 
+equil['btor_flux_tube'] = btor[flux_idx]
 
 f = open('gs2.in', 'w')
 f.write('Equilibrium Parameters: \n')
@@ -179,15 +179,15 @@ f.write('\n')
 #Calculate species parameters #
 ###############################
 
-#######
-# ION #
-#######
+############
+# Main ION #
+############
 #ION SPECIES 1 - Deuterium (reference)
 ion_1 = {}
-ion_1['dens'] = 1.0 
+ion_1['dens'] = 1.0
 n_ref = np.interp(output_radius, x, nd)*1e6/1e19 #1e19m^-3
 ion_1['mass'] = 1.0
-ion_1['temp'] = 1.0 
+ion_1['temp'] = 1.0
 t_ref = np.interp(output_radius, x, ti)/1000 #keV
 ion_1['fprim'] = -(nd[rad_idx+1]-nd[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])/nd[rad_idx]*dpsi_da
 ion_1['tprim'] = -(ti[rad_idx+1]-ti[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])/ti[rad_idx]*dpsi_da
@@ -215,6 +215,9 @@ zi = 1
 electron['vnewk'] = 3.95e-3*amin*np.sqrt(0.5*mi)*loglam*n_ref/(np.sqrt(t_ref)*electron_temp**1.5)
 ion_1['vnewk'] = 9.21e-5*amin*zi**4/np.sqrt(2.)*loglam*n_ref/t_ref**2
 
+#####################
+# Other ION species #
+#####################
 if h_spec_bool:
     #ION SPECIES 2 - Hydrogen
     ion_2 = {}
@@ -315,7 +318,7 @@ ref['vref'] = vth
 ref['lref'] = amin
 ref['nref'] = n_ref*1e19
 ref['tref'] = t_ref*1000/boltz_evk
-ref['bref'] = equil['bref'] 
+ref['bref'] = equil['bref']
 larmor_freq_ref = e * ref['bref'] / (2*proton_mass)
 ref['rhoref'] = vth / larmor_freq_ref
 
