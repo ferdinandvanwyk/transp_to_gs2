@@ -63,13 +63,8 @@ Radial Grids and Gradients
 Collisions
 ----------
 
-* Equations for collision times/frequencies taken from Wesson Section 2.15 (T(keV), n(m^-3), mi=ion mass, mp=proton mass):
-  * nu_i = 1/tau_i = 1 / [6.60e17 ((mi/mp)^1/2 Ti^3/2) / (n Z^4 ln(Lambda))] s^-1
-  * nu_e = 1/tau_e = 1 / [1.09e16 (Te^3/2) / (n Z^2 ln(Lambda))] s^-1
-  * log(Lambda) = Coulomb logarithm
-    *log_i = 17.3 - 0.5*np.log(n/1e20) + 1.5*np.log(Ti) 
-    *log_e = 14.9 - 0.5*np.log(n/1e20) + np.log(Te) 
-  * lambda = debye length = 2.35e5 (T/n) m
+* The collision frequencies are calculated using the equation from the GS2 wiki
+(http://gyrokinetics.sourceforge.net/wiki/index.php/Gs2_Input_Parameters).
+* More convenient equations (calculated by M. Barnes)
 * For the purposes of collision frequency calculations, ni = ne = n to satisfy quasineutrality. 
-* From above explanation it should be clear that collisions between ion species is not being calculated. Only the collision frequency of the ion species with itself is being calculated. To do a GS2 simulation with many species you will need to recalculate collision frequencies consistent with the number of species included in the simulation. The default for this code works for ion simulations with AE and kinetic ions and electrons.
 
