@@ -3,6 +3,7 @@ import operator
 import warnings
 
 import numpy as np
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator, AutoMinorLocator
 from netCDF4 import Dataset
@@ -69,6 +70,12 @@ def plot_gradient(x, y, x0, filename):
     ax.grid(b=True, which='minor')
     plt.savefig('plot_checks/' + filename)
     plt.close(fig)
+
+def R(rmaj, rhoc, th, tri):
+        return rmaj + rhoc * np.cos(th + tri*np.sin(th))
+
+def Z(akappa, rhoc, th):
+        return akappa * rhoc*np.sin(th)
 
 in_file =  str(sys.argv[1])
 output_radius =  float(sys.argv[2])
@@ -361,3 +368,22 @@ plot_gradient(xb, triang, output_radius, 'tripri.png')
 if h_spec_bool:
     plot_dash(x, nh, output_radius, 'n_H.png')
     plot_gradient(x, nh, output_radius, 'fprim_H.png')
+
+# Poloidal plot of flux tube
+theta = np.linspace(-np.pi, np.pi, 100)
+fig, ax = plt.subplots(1, 1)
+
+plt.plot(amin*R(geo['rmaj'], rho_miller, theta, geo['tri']),
+         amin*Z(geo['akappa'], rho_miller, theta))
+plt.xlim(0,6*amin)
+plt.title(r'Flux Surface at $\rho_c = {:.3f}$'.format(rho_miller))
+ax.set_aspect('equal')
+ax.xaxis.set_minor_locator(mpl.ticker.MultipleLocator( (plt.xticks()[0][1]-plt.xticks()[0][0]) / 2.0 ))
+ax.yaxis.set_minor_locator(mpl.ticker.MultipleLocator( (plt.yticks()[0][1]-plt.yticks()[0][0]) / 2.0 ))
+ax.grid(True, 'major', color='0.92', linestyle='-', linewidth=1.4)
+ax.grid(True, 'minor', color='0.92', linestyle='-', linewidth=0.7)
+ax.yaxis.set_ticks_position('left')
+ax.xaxis.set_ticks_position('bottom')
+plt.xlabel(r'$R$ (m)')
+plt.ylabel(r'$Z$ (m)')
+plt.savefig('plot_checks/flux_tube.png')
