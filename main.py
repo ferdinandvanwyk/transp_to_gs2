@@ -292,8 +292,8 @@ geo['akappa'] = np.interp(output_radius, x, elongation)
 geo['akappri'] = (elongation[rad_idx+1]-elongation[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])*dpsi_da
 geo['tri'] = np.arcsin(np.interp(output_radius, x, triang))
 geo['tripri'] = (np.arcsin(triang[rad_idx+1])-np.arcsin(triang[rad_idx-1]))/(x[rad_idx+1]-x[rad_idx-1])*dpsi_da
-geo['rmaj'] = rmaj[mag_axis_idx]/100+amin
-geo['r_geo'] = flux_centres[-1]/100+amin
+geo['rmaj'] = rmaj[mag_axis_idx]/100/amin
+geo['r_geo'] = flux_centres[-1]/100/amin
 
 f.write('Geometry Parameters: \n')
 f.write('-------------------- \n')
