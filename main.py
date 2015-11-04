@@ -197,6 +197,7 @@ equil['g_exb'] = (omega[rad_idx+1]-omega[rad_idx-1])/ \
 equil['dpsi_da'] = dpsi_da
 equil['bpol_flux_tube'] = np.interp(output_radius, x, bpol)
 equil['btor_flux_tube'] = btor[flux_idx]
+equil['mach'] = amin * equil['omega'] / vth
 
 f = open('gs2.in', 'w')
 f.write('Equilibrium Parameters: \n')
