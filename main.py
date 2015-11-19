@@ -134,6 +134,7 @@ elongation = ncfile.variables['ELONG'][t_idx, :]
 triang = ncfile.variables['TRIANG'][t_idx, :]
 zeffp = ncfile.variables['ZEFFP'][t_idx, :]
 psi_t = ncfile.variables['TRFMP'][t_idx, :]
+psi_p = ncfile.variables['PLFLX'][t_idx, :]
 
 # Normalization quantities
 boltz_jk = 1.3806488e-23
@@ -195,6 +196,8 @@ equil['g_exb'] = (omega[rad_idx+1]-omega[rad_idx-1])/ \
                     (x[rad_idx+1]-x[rad_idx-1])*(rho_miller/q[radb_idx])* \
                     (amin/vth)*dpsi_da  # q defined on xb grid
 equil['dpsi_da'] = dpsi_da
+equil['psi_tor'] = rho_transp
+equil['psi_pol'] = np.sqrt((psi_p[flux_idx - mag_axis_idx] - psi_p[0])/(psi_p[-1] - psi_p[0]))
 equil['bpol_flux_tube'] = np.interp(output_radius, x, bpol)
 equil['btor_flux_tube'] = btor[flux_idx]
 equil['mach'] = amin * equil['omega'] / vth
@@ -341,8 +344,8 @@ geo['akappri'] = (elongation[rad_idx+1]-elongation[rad_idx-1])/ \
 geo['tri'] = np.arcsin(np.interp(output_radius, x, triang))
 geo['tripri'] = (np.arcsin(triang[rad_idx+1])-np.arcsin(triang[rad_idx-1]))/ \
                     (x[rad_idx+1]-x[rad_idx-1])*dpsi_da
-geo['rmaj'] = rmaj[mag_axis_idx]/100/amin
-geo['r_geo'] = flux_centres[-1]/100/amin
+geo['rmaj'] = (rmaj[flux_idx] + rmaj[mag_axis_idx - (flux_idx-mag_axis_idx)])/100/2/amin
+geo['r_geo'] = (rmaj[-1] + rmaj[0])/2/100/amin
 
 f.write('Geometry Parameters: \n')
 f.write('-------------------- \n')
