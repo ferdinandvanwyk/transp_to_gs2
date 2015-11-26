@@ -202,7 +202,8 @@ equil['bpol_flux_tube'] = np.interp(output_radius, x, bpol)
 equil['btor_flux_tube'] = btor[flux_idx]
 equil['mach'] = amin * equil['omega'] / vth
 
-f = open('gs2.in', 'w')
+outfile_name = 'gs2_rho_' + str(output_radius) + '_time_' + str(output_time) + '.in' 
+f = open(outfile_name, 'w')
 f.write('Equilibrium Parameters: \n')
 f.write('----------------------- \n')
 for name, value in sorted(equil.items()):
