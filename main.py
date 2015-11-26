@@ -178,7 +178,7 @@ vth = np.sqrt((2*np.interp(output_radius, x, ti)*boltz_jk/boltz_evk)/ \
 equil['omega'] = np.interp(output_radius, x, omega)  # rad/s
 btor = fbtx*btx
 b = fbx*btx
-equil['bref'] = np.interp(flux_centres[-1], rmaj, btor)
+equil['bref'] = btor[mag_axis_idx]
 # n_ref(1e19 m^-3), T_ref(keV):
 beta = 403.0*nd*1e6/1e19*ti/1000/(1e5*equil['bref']**2)
 if h_spec_bool:
