@@ -3,7 +3,6 @@ import operator
 
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
 from netCDF4 import Dataset
 
 in_file =  str(sys.argv[1])
