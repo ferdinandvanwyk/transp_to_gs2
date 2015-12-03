@@ -42,7 +42,7 @@ def plot_dash(x, y, x0, filename):
     plt.axvline(x0, color='r', ls='--')
     ax.grid(b=True, which='major')
     ax.grid(b=True, which='minor')
-    plt.savefig('plot_checks/' + filename)
+    plt.savefig(plot_dir + '/' + filename)
     plt.close(fig)
 
 
@@ -74,7 +74,7 @@ def plot_gradient(x, y, x0, filename):
     ax.yaxis.set_minor_locator(AutoMinorLocator())
     ax.grid(b=True, which='major')
     ax.grid(b=True, which='minor')
-    plt.savefig('plot_checks/' + filename)
+    plt.savefig(plot_dir + '/' + filename)
     plt.close(fig)
 
 
@@ -91,8 +91,9 @@ output_time = float(sys.argv[3])
 ncfile = Dataset(in_file, 'r', format='NETCDF3')
 
 # Create directory for plot checks and clear if already exists
-os.system('mkdir plot_checks')
-os.system('rm  -f plot_checks/*')
+plot_dir = 'plot_checks_rho_' + str(output_radius) + '_time_' + str(output_time) 
+os.system('mkdir ' + plot_dir)
+os.system('rm -f ' + plot_dir + '/*')
 
 # Read relevant data from TRANSP file
 time = ncfile.variables['TIME'][:]
@@ -437,4 +438,4 @@ ax.xaxis.set_ticks_position('bottom')
 ax.set_axisbelow(True)
 plt.xlabel(r'$R$ (m)')
 plt.ylabel(r'$Z$ (m)')
-plt.savefig('plot_checks/flux_tube.png')
+plt.savefig(plot_dir + '/flux_tube.png')
