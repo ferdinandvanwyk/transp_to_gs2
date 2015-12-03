@@ -420,7 +420,6 @@ if h_spec_bool:
 theta = np.linspace(-np.pi, np.pi, 100)
 fig, ax = plt.subplots(1, 1)
 
-print('R(0) = ', R(geo['rmaj'], rho_miller, 0, geo['tri'])*amin)
 plt.plot(amin*R(geo['rmaj'], rho_miller, theta, geo['tri']),
          amin*Z(geo['akappa'], rho_miller, theta))
 plt.xlim(0, 6*amin)
