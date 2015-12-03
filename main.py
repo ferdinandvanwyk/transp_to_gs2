@@ -220,28 +220,28 @@ f.write('\n')
 ############
 # ION SPECIES 1 - Deuterium (reference)
 ion_1 = {}
-ion_1['dens'] = 1.0
+ion_1['dens_1'] = 1.0
 n_ref = np.interp(output_radius, x, nd)*1e6/1e19  # 1e19m^-3
-ion_1['mass'] = 1.0
-ion_1['temp'] = 1.0
+ion_1['mass_1'] = 1.0
+ion_1['temp_1'] = 1.0
 t_ref = np.interp(output_radius, x, ti)/1000  # keV
-ion_1['fprim'] = -(nd[rad_idx+1]-nd[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])/ \
+ion_1['fprim_1'] = -(nd[rad_idx+1]-nd[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])/ \
                      nd[rad_idx]*dpsi_da
-ion_1['tprim'] = -(ti[rad_idx+1]-ti[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])/ \
+ion_1['tprim_1'] = -(ti[rad_idx+1]-ti[rad_idx-1])/(x[rad_idx+1]-x[rad_idx-1])/ \
                      ti[rad_idx]*dpsi_da
 
 ############
 # ELECTRON #
 ############
 electron = {}
-electron['dens'] = np.interp(output_radius, x, ne)*1e6/1e19/n_ref  # 1e19m^-3
+electron['dens_2'] = np.interp(output_radius, x, ne)*1e6/1e19/n_ref  # 1e19m^-3
 electron_dens = np.interp(output_radius, x, ne)*1e6/1e19  # 1e19m^-3
-electron['mass'] = 1.0/(2.0*1836.0)  # Assume D-electron plasma
-electron['temp'] = np.interp(output_radius, x, te)/1000/t_ref  # keV
+electron['mass_2'] = 1.0/(2.0*1836.0)  # Assume D-electron plasma
+electron['temp_2'] = np.interp(output_radius, x, te)/1000/t_ref  # keV
 electron_temp = np.interp(output_radius, x, te)/1000  # keV
-electron['fprim'] = -(ne[rad_idx+1]-ne[rad_idx-1])/ \
+electron['fprim_2'] = -(ne[rad_idx+1]-ne[rad_idx-1])/ \
                         (x[rad_idx+1]-x[rad_idx-1])/ne[rad_idx]*dpsi_da
-electron['tprim'] = -(te[rad_idx+1]-te[rad_idx-1])/ \
+electron['tprim_2'] = -(te[rad_idx+1]-te[rad_idx-1])/ \
                         (x[rad_idx+1]-x[rad_idx-1])/te[rad_idx]*dpsi_da
 
 ###############
@@ -252,9 +252,9 @@ electron['tprim'] = -(te[rad_idx+1]-te[rad_idx-1])/ \
 loglam = 24.0 - np.log(1e4*np.sqrt(0.1*n_ref)/electron_temp)
 mi = 2
 zi = 1
-electron['vnewk'] = 3.95e-3*amin*np.sqrt(0.5*mi)*loglam*n_ref/ \
+electron['vnewk_2'] = 3.95e-3*amin*np.sqrt(0.5*mi)*loglam*n_ref/ \
                         (np.sqrt(t_ref)*electron_temp**1.5)
-ion_1['vnewk'] = 9.21e-5*amin*zi**4/np.sqrt(2.)*loglam*n_ref/t_ref**2
+ion_1['vnewk_1'] = 9.21e-5*amin*zi**4/np.sqrt(2.)*loglam*n_ref/t_ref**2
 
 #####################
 # Other ION species #
@@ -262,46 +262,46 @@ ion_1['vnewk'] = 9.21e-5*amin*zi**4/np.sqrt(2.)*loglam*n_ref/t_ref**2
 if h_spec_bool:
     # ION SPECIES 2 - Hydrogen
     ion_2 = {}
-    ion_2['dens'] = np.interp(output_radius, x, nh)*1e6/1e19/n_ref  # 1e19m^-3
+    ion_2['dens_3'] = np.interp(output_radius, x, nh)*1e6/1e19/n_ref  # 1e19m^-3
     ion_2_dens = np.interp(output_radius, x, nh)*1e6/1e19  # 1e19m^-3
-    ion_2['mass'] = 0.5
-    ion_2['temp'] = np.interp(output_radius, x, ti)/1000/t_ref  # keV
+    ion_2['mass_3'] = 0.5
+    ion_2['temp_3'] = np.interp(output_radius, x, ti)/1000/t_ref  # keV
     ion_2_temp = np.interp(output_radius, x, ti)/1000  # keV
-    ion_2['fprim'] = -(nh[rad_idx+1]-nh[rad_idx-1])/ \
+    ion_2['fprim_3'] = -(nh[rad_idx+1]-nh[rad_idx-1])/ \
                       (x[rad_idx+1]-x[rad_idx-1])/nh[rad_idx]*dpsi_da
-    ion_2['tprim'] = -(ti[rad_idx+1]-ti[rad_idx-1])/ \
+    ion_2['tprim_3'] = -(ti[rad_idx+1]-ti[rad_idx-1])/ \
                       (x[rad_idx+1]-x[rad_idx-1])/ti[rad_idx]*dpsi_da
     zi = 1
-    ion_2['vnewk'] = 9.21e-5*amin*zi**4/np.sqrt(2.)*loglam*ion_2_dens/ \
+    ion_2['vnewk_3'] = 9.21e-5*amin*zi**4/np.sqrt(2.)*loglam*ion_2_dens/ \
                      ion_2_temp**2
 
 # ION SPECIES 3 - Impurity
 ion_3 = {}
-ion_3['dens'] = np.interp(output_radius, x, nimp)*1e6/1e19/n_ref  # 1e19m^-3
+ion_3['dens_4'] = np.interp(output_radius, x, nimp)*1e6/1e19/n_ref  # 1e19m^-3
 ion_3_dens = np.interp(output_radius, x, nimp)*1e6/1e19  # 1e19m^-3
-ion_3['mass'] = 6.0
-ion_3['temp'] = np.interp(output_radius, x, timp)/1000/t_ref  # keV
+ion_3['mass_4'] = 6.0
+ion_3['temp_4'] = np.interp(output_radius, x, timp)/1000/t_ref  # keV
 ion_3_temp = np.interp(output_radius, x, timp)/1000  # keV
-ion_3['fprim'] = -(nimp[rad_idx+1]-nimp[rad_idx-1])/ \
+ion_3['fprim_4'] = -(nimp[rad_idx+1]-nimp[rad_idx-1])/ \
                      (x[rad_idx+1]-x[rad_idx-1])/nimp[rad_idx]*dpsi_da
-ion_3['tprim'] = -(timp[rad_idx+1]-timp[rad_idx-1])/ \
+ion_3['tprim_4'] = -(timp[rad_idx+1]-timp[rad_idx-1])/ \
                      (x[rad_idx+1]-x[rad_idx-1])/timp[rad_idx]*dpsi_da
 zi = 6
-ion_3['vnewk'] = 9.21e-5*amin*zi**4/np.sqrt(2.)*loglam*ion_3_dens/ion_3_temp**2
+ion_3['vnewk_4'] = 9.21e-5*amin*zi**4/np.sqrt(2.)*loglam*ion_3_dens/ion_3_temp**2
 
 # FAST ION SPECIES
 ion_4 = {}
-ion_4['dens'] = np.interp(output_radius, x, nb)*1e6/1e19/n_ref  # 1e19m^-3
+ion_4['dens_5'] = np.interp(output_radius, x, nb)*1e6/1e19/n_ref  # 1e19m^-3
 ion_4_dens = np.interp(output_radius, x, nb)*1e6/1e19  # 1e19m^-3
-ion_4['mass'] = 1.0
-ion_4['temp'] = np.interp(output_radius, x, tb)/1000/t_ref  # keV
+ion_4['mass_5'] = 1.0
+ion_4['temp_5'] = np.interp(output_radius, x, tb)/1000/t_ref  # keV
 ion_4_temp = np.interp(output_radius, x, tb)/1000  # keV
-ion_4['fprim'] = -(nb[rad_idx+1]-nb[rad_idx-1])/ \
+ion_4['fprim_5'] = -(nb[rad_idx+1]-nb[rad_idx-1])/ \
                      (x[rad_idx+1]-x[rad_idx-1])/nb[rad_idx]*dpsi_da
-ion_4['tprim'] = -(tb[rad_idx+1]-tb[rad_idx-1])/ \
+ion_4['tprim_5'] = -(tb[rad_idx+1]-tb[rad_idx-1])/ \
                      (x[rad_idx+1]-x[rad_idx-1])/tb[rad_idx]*dpsi_da
 zi = 1
-ion_4['vnewk'] = 9.21e-5*amin*zi**4/np.sqrt(2.)*loglam*ion_4_dens/ion_4_temp**2
+ion_4['vnewk_5'] = 9.21e-5*amin*zi**4/np.sqrt(2.)*loglam*ion_4_dens/ion_4_temp**2
 
 f.write('Species Parameters: \n')
 f.write('------------------- \n')
@@ -420,6 +420,7 @@ if h_spec_bool:
 theta = np.linspace(-np.pi, np.pi, 100)
 fig, ax = plt.subplots(1, 1)
 
+print('R(0) = ', R(geo['rmaj'], rho_miller, 0, geo['tri'])*amin)
 plt.plot(amin*R(geo['rmaj'], rho_miller, theta, geo['tri']),
          amin*Z(geo['akappa'], rho_miller, theta))
 plt.xlim(0, 6*amin)
