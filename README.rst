@@ -5,6 +5,7 @@ Reads a TRANSP output file and outputs parameters relevant to a GS2 simulation
 
 Input:
 ------
+
 * Function takes in three command line parameters with an optional fourth:
    * Path to TRANSP file
    * Radial location (will interpolate): value of the square root of the 
