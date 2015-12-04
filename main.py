@@ -99,7 +99,7 @@ ncfile = Dataset(in_file, 'r', format='NETCDF3')
 
 # Create directory for plot checks and clear if already exists
 plot_dir = 'plot_checks_rho_' + str(output_radius) + '_time_' + str(output_time) 
-os.system('mkdir ' + plot_dir)
+os.system('mkdir -p ' + plot_dir)
 os.system('rm -f ' + plot_dir + '/*')
 
 ####################
