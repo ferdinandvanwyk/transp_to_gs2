@@ -340,7 +340,7 @@ gs2['theta_grid_parameters']['rhoc'] = rho_miller
 gs2['theta_grid_parameters']['qinp'] = np.interp(output_radius, xb, q)
 gs2['theta_grid_parameters']['shat'] =  ((q[radb_idx+1]-q[radb_idx-1])/(xb[radb_idx+1]-xb[radb_idx-1]))* \
                    (rho_miller/q[radb_idx])*dpsi_da
-gs2['theta_grid_parameters']['s_hat_input'] = ((q[radb_idx+1] - q[radb_idx-1])/ \
+gs2['theta_grid_eik_knobs']['s_hat_input'] = ((q[radb_idx+1] - q[radb_idx-1])/ \
                       (xb[radb_idx+1] - xb[radb_idx-1]))* \
                      (rho_miller/q[radb_idx])*dpsi_da
 gs2['theta_grid_parameters']['shift'] = (flux_centres[rad_idx+1]/100/amin-flux_centres[rad_idx-1]/100/amin)/ \
@@ -369,6 +369,7 @@ gs2['miscellaneous']['nref'] = n_ref*1e19
 gs2['miscellaneous']['tref'] = t_ref*1000/boltz_evk
 larmor_freq_ref = e * gs2['miscellaneous']['bref'] / (2*proton_mass)
 gs2['miscellaneous']['rhoref'] = vth / larmor_freq_ref
+gs2['miscellaneous']['r_mid_out'] = amin*R(gs2['theta_grid_parameters']['rmaj'], rho_miller, 0, gs2['theta_grid_parameters']['tri'])
 
 ######################
 # Write the namelist #
