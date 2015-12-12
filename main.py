@@ -166,11 +166,11 @@ rho_miller = (rmaj[flux_idx] - rmaj[mag_axis_idx - (flux_idx-mag_axis_idx)])/ \
              (rmaj[-1] - rmaj[0])  # diameter/diameter of LCFS
 a_right = (rmaj[flux_idx+1] - rmaj[mag_axis_idx - (flux_idx+1-mag_axis_idx)])/\
           (rmaj[-1] - rmaj[0])  # diameter/diameter of LCFS
-psi_left = np.sqrt(psi_t[flux_idx-1]/psi_t[-1])  # sqrt(psi_t/psi_LCFS)
+rho_tor_left = np.sqrt(psi_t[flux_idx-1]/psi_t[-1])  # sqrt(psi_t/psi_LCFS)
 rho_transp = np.sqrt(psi_t[flux_idx]/psi_t[-1])  # sqrt(psi_t/psi_LCFS)
-psi_right = np.sqrt(psi_t[flux_idx+1]/psi_t[-1])  # sqrt(psi_t/psi_LCFS)
+rho_tor_right = np.sqrt(psi_t[flux_idx+1]/psi_t[-1])  # sqrt(psi_t/psi_LCFS)
 # Coefficient which relates psi_n and a_n grids
-dpsi_da = (psi_right-psi_left)/(a_right-a_left)
+drho_da = (rho_tor_right-rho_tor_left)/(a_right-a_left)
 
 # Gradient calculation requires numerical differentiation
 # Use a second order central method: f'(x) = [f(x+h) - f(x-h)]/2h
@@ -222,11 +222,11 @@ gs2['parameters']['beta'] = np.interp(output_radius, x, beta)
 gs2['parameters']['zeff'] = np.interp(output_radius, x, zeffp)
 # See wiki definition: not taking into account B_T variation
 gs2['theta_grid_eik_knobs']['beta_prime_input'] = (beta_full[rad_idx+1]-beta_full[rad_idx-1])/ \
-                            (x[rad_idx+1]-x[rad_idx-1])*dpsi_da
+                            (x[rad_idx+1]-x[rad_idx-1])*drho_da
 gs2['dist_fn_knobs']['g_exb'] = (omega[rad_idx+1]-omega[rad_idx-1])/ \
                     (x[rad_idx+1]-x[rad_idx-1])*(rho_miller/q[radb_idx])* \
-                    (amin/vth)*dpsi_da  # q defined on xb grid
-gs2['miscellaneous']['dpsi_da'] = dpsi_da
+                    (amin/vth)*drho_da  # q defined on xb grid
+gs2['miscellaneous']['drho_da'] = drho_da
 gs2['miscellaneous']['psi_tor'] = rho_transp
 gs2['miscellaneous']['psi_pol'] = np.sqrt((psi_p[flux_idx - mag_axis_idx] - 
                                       psi_p[0])/(psi_p[-1] - psi_p[0]))
@@ -248,10 +248,10 @@ gs2['species_parameters_1']['temp'] = 1.0
 t_ref = np.interp(output_radius, x, ti)/1000  # keV
 gs2['species_parameters_1']['fprim'] = -(nd[rad_idx+1]-nd[rad_idx-1])/ \
                                          (x[rad_idx+1]-x[rad_idx-1])/ \
-                                         nd[rad_idx]*dpsi_da
+                                         nd[rad_idx]*drho_da
 gs2['species_parameters_1']['tprim'] = -(ti[rad_idx+1]-ti[rad_idx-1])/ \
                                          (x[rad_idx+1]-x[rad_idx-1])/ \
-                                         ti[rad_idx]*dpsi_da
+                                         ti[rad_idx]*drho_da
 gs2['species_parameters_1']['type'] = 'ion'
 gs2['species_parameters_1']['z'] = 1
 
@@ -265,9 +265,9 @@ gs2['species_parameters_2']['mass'] = 1.0/(2.0*1836.0)  # Assume D-gs2['species_
 gs2['species_parameters_2']['temp'] = np.interp(output_radius, x, te)/1000/t_ref  # keV
 electron_temp = np.interp(output_radius, x, te)/1000  # keV
 gs2['species_parameters_2']['fprim'] = -(ne[rad_idx+1]-ne[rad_idx-1])/ \
-                        (x[rad_idx+1]-x[rad_idx-1])/ne[rad_idx]*dpsi_da
+                        (x[rad_idx+1]-x[rad_idx-1])/ne[rad_idx]*drho_da
 gs2['species_parameters_2']['tprim'] = -(te[rad_idx+1]-te[rad_idx-1])/ \
-                        (x[rad_idx+1]-x[rad_idx-1])/te[rad_idx]*dpsi_da
+                        (x[rad_idx+1]-x[rad_idx-1])/te[rad_idx]*drho_da
 gs2['species_parameters_2']['type'] = 'electron'
 gs2['species_parameters_2']['z'] = -1
 
@@ -294,9 +294,9 @@ if h_spec_bool:
     gs2['species_parameters_3']['temp_3'] = np.interp(output_radius, x, ti)/1000/t_ref  # keV
     ion_2_temp = np.interp(output_radius, x, ti)/1000  # keV
     gs2['species_parameters_3']['fprim_3'] = -(nh[rad_idx+1]-nh[rad_idx-1])/ \
-                      (x[rad_idx+1]-x[rad_idx-1])/nh[rad_idx]*dpsi_da
+                      (x[rad_idx+1]-x[rad_idx-1])/nh[rad_idx]*drho_da
     gs2['species_parameters_3']['tprim_3'] = -(ti[rad_idx+1]-ti[rad_idx-1])/ \
-                      (x[rad_idx+1]-x[rad_idx-1])/ti[rad_idx]*dpsi_da
+                      (x[rad_idx+1]-x[rad_idx-1])/ti[rad_idx]*drho_da
     zi = 1
     gs2['species_parameters_3']['z'] = 1
     gs2['species_parameters_3']['vnewk_3'] = 9.21e-5*amin*zi**4/np.sqrt(2.)*loglam*ion_2_dens/ \
@@ -310,9 +310,9 @@ gs2['species_parameters_4']['mass_4'] = 6.0
 gs2['species_parameters_4']['temp_4'] = np.interp(output_radius, x, timp)/1000/t_ref  # keV
 ion_3_temp = np.interp(output_radius, x, timp)/1000  # keV
 gs2['species_parameters_4']['fprim_4'] = -(nimp[rad_idx+1]-nimp[rad_idx-1])/ \
-                     (x[rad_idx+1]-x[rad_idx-1])/nimp[rad_idx]*dpsi_da
+                     (x[rad_idx+1]-x[rad_idx-1])/nimp[rad_idx]*drho_da
 gs2['species_parameters_4']['tprim_4'] = -(timp[rad_idx+1]-timp[rad_idx-1])/ \
-                     (x[rad_idx+1]-x[rad_idx-1])/timp[rad_idx]*dpsi_da
+                     (x[rad_idx+1]-x[rad_idx-1])/timp[rad_idx]*drho_da
 zi = 6
 gs2['species_parameters_4']['z'] = 6
 gs2['species_parameters_4']['vnewk_4'] = 9.21e-5*amin*zi**4/np.sqrt(2.)*loglam*ion_3_dens/ion_3_temp**2
@@ -325,9 +325,9 @@ gs2['species_parameters_5']['mass_5'] = 1.0
 gs2['species_parameters_5']['temp_5'] = np.interp(output_radius, x, tb)/1000/t_ref  # keV
 ion_4_temp = np.interp(output_radius, x, tb)/1000  # keV
 gs2['species_parameters_5']['fprim_5'] = -(nb[rad_idx+1]-nb[rad_idx-1])/ \
-                     (x[rad_idx+1]-x[rad_idx-1])/nb[rad_idx]*dpsi_da
+                     (x[rad_idx+1]-x[rad_idx-1])/nb[rad_idx]*drho_da
 gs2['species_parameters_5']['tprim_5'] = -(tb[rad_idx+1]-tb[rad_idx-1])/ \
-                     (x[rad_idx+1]-x[rad_idx-1])/tb[rad_idx]*dpsi_da
+                     (x[rad_idx+1]-x[rad_idx-1])/tb[rad_idx]*drho_da
 zi = 1
 gs2['species_parameters_5']['z'] = 1
 gs2['species_parameters_5']['vnewk_5'] = 9.21e-5*amin*zi**4/np.sqrt(2.)*loglam*ion_4_dens/ion_4_temp**2
@@ -339,18 +339,18 @@ gs2['species_parameters_5']['type'] = 'beam'
 gs2['theta_grid_parameters']['rhoc'] = rho_miller
 gs2['theta_grid_parameters']['qinp'] = np.interp(output_radius, xb, q)
 gs2['theta_grid_parameters']['shat'] =  ((q[radb_idx+1]-q[radb_idx-1])/(xb[radb_idx+1]-xb[radb_idx-1]))* \
-                   (rho_miller/q[radb_idx])*dpsi_da
+                   (rho_miller/q[radb_idx])*drho_da
 gs2['theta_grid_eik_knobs']['s_hat_input'] = ((q[radb_idx+1] - q[radb_idx-1])/ \
                       (xb[radb_idx+1] - xb[radb_idx-1]))* \
-                     (rho_miller/q[radb_idx])*dpsi_da
+                     (rho_miller/q[radb_idx])*drho_da
 gs2['theta_grid_parameters']['shift'] = (flux_centres[rad_idx+1]/100/amin-flux_centres[rad_idx-1]/100/amin)/ \
-                   (x[rad_idx+1]-x[rad_idx-1])*dpsi_da
+                   (x[rad_idx+1]-x[rad_idx-1])*drho_da
 gs2['theta_grid_parameters']['akappa'] = np.interp(output_radius, x, elongation)
 gs2['theta_grid_parameters']['akappri'] = (elongation[rad_idx+1]-elongation[rad_idx-1])/ \
-                     (x[rad_idx+1]-x[rad_idx-1])*dpsi_da
+                     (x[rad_idx+1]-x[rad_idx-1])*drho_da
 gs2['theta_grid_parameters']['tri'] = np.arcsin(np.interp(output_radius, x, triang))
 gs2['theta_grid_parameters']['tripri'] = (np.arcsin(triang[rad_idx+1])-np.arcsin(triang[rad_idx-1]))/ \
-                    (x[rad_idx+1]-x[rad_idx-1])*dpsi_da
+                    (x[rad_idx+1]-x[rad_idx-1])*drho_da
 gs2['theta_grid_parameters']['rmaj'] = (rmaj[flux_idx] + rmaj[mag_axis_idx - (flux_idx-mag_axis_idx)])/100/2/amin
 gs2['theta_grid_parameters']['r_geo'] = (rmaj[-1] + rmaj[0])/2/100/amin
 
