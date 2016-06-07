@@ -98,7 +98,7 @@ except:
 ncfile = Dataset(in_file, 'r', format='NETCDF3')
 
 # Create directory for plot checks and clear if already exists
-plot_dir = 'plot_checks_rho_' + str(output_radius) + '_time_' + str(output_time) 
+plot_dir = 'plot_checks_rho_' + str(output_radius) + '_time_' + str(output_time)
 os.system('mkdir -p ' + plot_dir)
 os.system('rm -f ' + plot_dir + '/*')
 
@@ -146,7 +146,7 @@ elongation = ncfile.variables['ELONG'][t_idx, :]
 triang = ncfile.variables['TRIANG'][t_idx, :]
 zeffp = ncfile.variables['ZEFFP'][t_idx, :]
 psi_t = ncfile.variables['TRFMP'][t_idx, :]
-psi_p = ncfile.variables['PLFLX'][t_idx, :]
+psi_p = ncfile.variables['PLFMP'][t_idx, :]
 
 # Normalization quantities
 boltz_jk = 1.3806488e-23
@@ -188,11 +188,11 @@ if template:
     gs2 = nml.read(template)
 else:
     gs2 = {}
- 
+
 gs2_keys = ['dist_fn_knobs', 'parameters', 'theta_grid_parameters',
             'theta_grid_eik_knobs', 'species_parameters_1',
             'species_parameters_2', 'species_parameters_3',
-            'species_parameters_4', 'species_parameters_5', 
+            'species_parameters_4', 'species_parameters_5',
             'miscellaneous']
 
 for k in gs2_keys:
@@ -227,9 +227,8 @@ gs2['dist_fn_knobs']['g_exb'] = (omega[rad_idx+1]-omega[rad_idx-1])/ \
                     (x[rad_idx+1]-x[rad_idx-1])*(rho_miller/q[radb_idx])* \
                     (amin/vth)*drho_da  # q defined on xb grid
 gs2['miscellaneous']['drho_da'] = drho_da
-gs2['miscellaneous']['psi_tor'] = rho_transp
-gs2['miscellaneous']['psi_pol'] = np.sqrt((psi_p[flux_idx - mag_axis_idx] - 
-                                      psi_p[0])/(psi_p[-1] - psi_p[0]))
+gs2['miscellaneous']['rho_tor'] = rho_transp
+gs2['miscellaneous']['rho_pol'] = np.sqrt(psi_p[flux_idx]/psi_p[-1])
 gs2['miscellaneous']['bpol_flux_tube'] = np.interp(output_radius, x, bpol)
 gs2['miscellaneous']['btor_flux_tube'] = btor[flux_idx]
 gs2['miscellaneous']['mach'] = amin * gs2['miscellaneous']['omega'] / vth
@@ -375,12 +374,12 @@ gs2['miscellaneous']['r_mid_out'] = amin*R(gs2['theta_grid_parameters']['rmaj'],
 # Write the namelist #
 ######################
 
-outfile_name = 'gs2_rho_' + str(output_radius) + '_time_' + str(output_time) + '.in' 
+outfile_name = 'gs2_rho_' + str(output_radius) + '_time_' + str(output_time) + '.in'
 for k1 in gs2.keys():
     for k2 in gs2[k1].keys():
         if type(gs2[k1][k2]) == np.float32 or type(gs2[k1][k2]) == np.float64:
             gs2[k1][k2] = float(gs2[k1][k2])
-            
+
 gs2 = nml.Namelist(gs2)
 
 if outfile_name in os.listdir():
@@ -392,8 +391,10 @@ gs2.write(outfile_name)
 # Diagnostic plots #
 ####################
 
-plot_dash(x, omega, output_radius, 'omega.png')
 plot_dash(rmaj, btor, rmaj[mag_axis_idx], 'bref.png')
+plot_dash(rmaj, psi_p, rmaj[flux_idx], 'psi_poloidal.png')
+plot_dash(rmaj, psi_t, rmaj[flux_idx], 'psi_toroidal.png')
+plot_dash(x, omega, output_radius, 'omega.png')
 plot_dash(x, beta, output_radius, 'beta_ref.png')
 plot_dash(x, beta_full, output_radius, 'beta.png')
 plot_dash(x, ti, output_radius, 'ti.png')
