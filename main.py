@@ -350,7 +350,7 @@ gs2['theta_grid_parameters']['akappri'] = (elongation[rad_idx+1]-elongation[rad_
 gs2['theta_grid_parameters']['tri'] = np.arcsin(np.interp(output_radius, x, triang))
 gs2['theta_grid_parameters']['tripri'] = (np.arcsin(triang[rad_idx+1])-np.arcsin(triang[rad_idx-1]))/ \
                     (x[rad_idx+1]-x[rad_idx-1])*drho_da
-gs2['theta_grid_parameters']['rmaj'] = (rmaj[flux_idx] + rmaj[mag_axis_idx - (flux_idx-mag_axis_idx)])/100/2/amin
+gs2['theta_grid_parameters']['rmaj'] = rmaj[mag_axis_idx]/100/amin
 gs2['theta_grid_parameters']['r_geo'] = (rmaj[-1] + rmaj[0])/2/100/amin
 
 gs2['theta_grid_eik_knobs']['irho'] = 2
@@ -427,7 +427,9 @@ if h_spec_bool:
 theta = np.linspace(-np.pi, np.pi, 100)
 fig, ax = plt.subplots(1, 1)
 
-plt.plot(amin*R(gs2['theta_grid_parameters']['rmaj'], rho_miller, theta, gs2['theta_grid_parameters']['tri']),
+rmaj_flux = (rmaj[flux_idx] + rmaj[mag_axis_idx -
+                (flux_idx-mag_axis_idx)])/100/2/amin
+plt.plot(amin*R(rmaj_flux, rho_miller, theta, gs2['theta_grid_parameters']['tri']),
          amin*Z(gs2['theta_grid_parameters']['akappa'], rho_miller, theta))
 plt.xlim(0, 6*amin)
 plt.title(r'Flux Surface at $\rho_c = {:.3f}$'.format(rho_miller))
