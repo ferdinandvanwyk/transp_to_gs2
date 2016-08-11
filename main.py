@@ -353,7 +353,7 @@ if __name__ == '__main__':
                         (x[rad_idx+1]-x[rad_idx-1])*drho_da
     gs2['theta_grid_parameters']['rmaj'] = (rmaj[flux_idx] + rmaj[mag_axis_idx -
                                            (flux_idx-mag_axis_idx)])/100/2/amin
-    gs2['theta_grid_parameters']['r_geo'] = (rmaj[-1] + rmaj[0])/2/100/amin
+    gs2['theta_grid_parameters']['r_geo'] = rmaj[mag_axis_idx]/100/amin
 
     gs2['theta_grid_eik_knobs']['irho'] = 2
     gs2['theta_grid_eik_knobs']['iflux'] = 0
