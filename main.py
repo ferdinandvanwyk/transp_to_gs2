@@ -431,7 +431,7 @@ fig, ax = plt.subplots(1, 1)
 plt.plot(amin*R(gs2['theta_grid_parameters']['rmaj'], rho_miller, theta, gs2['theta_grid_parameters']['tri']),
          amin*Z(gs2['theta_grid_parameters']['akappa'], rho_miller, theta))
 plt.xlim(0, 6*amin)
-plt.title(r'Flux Surface at $\rho_c = {:.3f}$'.format(rho_miller))
+plt.title(r'Flux Surface at $\rho_\mathrm{{tor}} = {0:.3f}$'.format(output_radius))
 ax.set_aspect('equal')
 ax.xaxis.set_minor_locator(
     mpl.ticker.MultipleLocator((plt.xticks()[0][1] - \
@@ -446,4 +446,4 @@ ax.xaxis.set_ticks_position('bottom')
 ax.set_axisbelow(True)
 plt.xlabel(r'$R$ (m)')
 plt.ylabel(r'$Z$ (m)')
-plt.savefig(plot_dir + '/flux_tube.png')
+plt.savefig(plot_dir + '/flux_surface.png')
